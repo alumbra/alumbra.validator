@@ -29,14 +29,25 @@
 
 ;; ## Invariant
 
-(defn- add-scope-type
+(defn- add-operation-scope-type
   [{:keys [analyzer/schema-root]} {:keys [graphql/operation-type] :as data}]
   (if-let [t (get schema-root operation-type)]
     (assoc data :validator/scope-type t)
     data))
 
+(defn- add-fragment-scope-type
+  [{:keys [graphql/type-condition] :as data}]
+  (if-let [t (:graphql/type-name type-condition)]
+    (assoc data :validator/scope-type t)
+    data))
+
 (defn invariant
   [{:keys [analyzer/schema-root] :as schema}]
-  (-> (invariant/on [:graphql/operations ALL])
-      (invariant/fmap #(add-scope-type schema %))
-      (invariant/each (selection-set-valid? schema))))
+  (let [inv (selection-set-valid? schema)]
+    (invariant/and
+      (-> (invariant/on [:graphql/operations ALL])
+          (invariant/fmap #(add-operation-scope-type schema %))
+          (invariant/each inv))
+      (-> (invariant/on [:graphql/fragments ALL])
+          (invariant/fmap #(add-fragment-scope-type %))
+          (invariant/each inv)))))
