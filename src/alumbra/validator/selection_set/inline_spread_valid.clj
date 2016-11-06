@@ -17,7 +17,7 @@
 ;; ## Invariant
 
 (defn invariant
-  [schema {:keys [analyzer/implements]} selection-set-valid?]
+  [schema selection-set-valid?]
   (-> (invariant/on
         [:graphql/selection-set ALL inline-spread-selection?])
       (invariant/fmap add-scope-type)

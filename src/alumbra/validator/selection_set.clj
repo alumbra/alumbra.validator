@@ -1,7 +1,8 @@
 (ns alumbra.validator.selection-set
   (:require [alumbra.validator.selection-set
              [field-valid :as field-valid]
-             [inline-spread-valid :as inline-spread-valid]]
+             [inline-spread-valid :as inline-spread-valid]
+             [union-field-valid :as union-field-valid]]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -11,12 +12,23 @@
   [schema type self]
   (invariant/and
     (field-valid/invariant schema type self)
-    (inline-spread-valid/invariant schema type self)))
+    (inline-spread-valid/invariant schema self)))
 
 (defn- generate-invariants
   [schema k self]
   (for [[type-name type] (get schema k)]
     [type-name (make-selection-set-invariant schema type self)]))
+
+(defn- make-union-selection-set-invariant
+  [schema union-types self]
+  (invariant/and
+    (inline-spread-valid/invariant schema self)
+    (union-field-valid/invariant schema self)))
+
+(defn- generate-union-invariants
+  [{:keys [analyzer/unions] :as schema} self]
+  (for [[type-name union-types] unions]
+    [type-name (make-union-selection-set-invariant schema union-types self)]))
 
 (defn- selection-set-valid?
   [schema]
@@ -25,7 +37,8 @@
     (comp
       (->> (concat
              (generate-invariants schema :analyzer/types self)
-             (generate-invariants schema :analyzer/interfaces self))
+             (generate-invariants schema :analyzer/interfaces self)
+             (generate-union-invariants schema self))
            (into {}))
       :validator/scope-type)))
 
