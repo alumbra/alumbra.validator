@@ -74,7 +74,8 @@
     (fn [{:keys [validator/fragment-types]}
          {:keys [graphql/fragment-name]}]
       (let [t (get fragment-types fragment-name)]
-        (spread-type-valid? t)))))
+        (or (not t)
+            (spread-type-valid? t))))))
 
 ;; ## Invariants
 
