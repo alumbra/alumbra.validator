@@ -1,21 +1,21 @@
 (ns alumbra.validator
-  (:require [alumbra.validator.operations
-             [lone-anonymous-operation :as lone-anonymous-operation]
-             [operation-name-uniqueness :as operation-name-uniqueness]]
+  (:require [alumbra.validator
+             [operations :as operations]]
+            [alumbra.analyzer :as a]
             [invariant.core :as invariant]))
 
 (defn- generate-invariant
   "Generate an AST invariant based on the given schema."
-  [schema]
+  [analyzed-schema]
   (invariant/and
-    lone-anonymous-operation/invariant
-    operation-name-uniqueness/invariant))
+    (operations/invariant analyzed-schema)))
 
 (defn validator
   "Generate a function that will valid a GraphQL AST conforming to the
    spec `:graphql/document`."
   [schema]
-  (let [invariant (generate-invariant schema)]
+  (let [analyzed-schema (a/analyze schema)
+        invariant (generate-invariant analyzed-schema)]
     (fn [ast]
       (invariant/check invariant ast))))
 
