@@ -111,6 +111,7 @@
   (-> {:analyzer/types {}
        :analyzer/input-types {}
        :analyzer/interfaces {}}
+      (add-interfaces schema)
       (add-types schema)
       (extend-types schema)
       (add-input-types schema)))
