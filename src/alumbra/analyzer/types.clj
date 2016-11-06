@@ -12,13 +12,26 @@
     :named-type type-name
     :list-type  (read-type-name element-type)))
 
+(defn- read-arguments
+  [arguments]
+  (reduce
+    (fn [result {:keys [graphql/argument-name
+                        graphql/argument-type]}]
+      (assoc result
+             argument-name
+             {:analyzer/type-name (read-type-name argument-type)}))
+    {} arguments))
+
 (defn- add-type-fields
   [fields data]
   (reduce
-    (fn [data {:keys [graphql/field-name graphql/type]}]
+    (fn [data {:keys [graphql/field-name
+                      graphql/type
+                      graphql/type-field-arguments]}]
       (assoc-in data
                 [:analyzer/fields field-name]
-                {:graphql/type-name (read-type-name type)}))
+                {:graphql/type-name (read-type-name type)
+                 :analyzer/arguments (read-arguments type-field-arguments)}))
     data fields))
 
 ;; ## Interfaces

@@ -45,7 +45,15 @@
   (s/map-of :graphql/field-name :analyzer/field))
 
 (s/def :analyzer/field
-  (s/keys :req [:graphql/type-name]))
+  (s/keys :req [:graphql/type-name
+                :analyzer/arguments]))
+
+(s/def :analyzer/arguments
+  (s/map-of :graphql/argument-name
+            :analyzer/argument))
+
+(s/def :analyzer/argument
+  (s/keys :req [:analyzer/type-name]))
 
 (s/def :analyzer/interface
   (s/keys :req [:analyzer/implemented-by

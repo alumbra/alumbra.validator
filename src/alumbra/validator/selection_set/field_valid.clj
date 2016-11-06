@@ -1,5 +1,7 @@
 (ns alumbra.validator.selection-set.field-valid
-  (:require [invariant.core :as invariant]
+  (:require [alumbra.validator.arguments
+             [arguments-valid :as arguments-valid]]
+            [invariant.core :as invariant]
             [com.rpl.specter :refer [ALL]]))
 
 ;; Formal Specification (5.2.1)
@@ -62,4 +64,5 @@
             (invariant/value
               :validator/leaf-field-selection
               allowed-subselection?)
+            (arguments-valid/invariant type)
             selection-set-valid?)))))
