@@ -1,20 +1,12 @@
 (ns alumbra.validator.fragments.fragments-must-be-used
   (:require [invariant.core :as invariant]
-            [com.rpl.specter :refer :all]))
+            [com.rpl.specter :refer :all]
+            [alumbra.validator.utils :refer [dfs]]))
 
 ;; Formal Specification (5.4.1.4)
 ;; ---
 ;; - For each `fragment` defined in the document.
 ;; - `fragment` must be the target of at least one spread in the document.
-
-(def dfs
-  (recursive-path
-    [k]
-    p
-    (cond-path
-      map?  (multi-path (must k) [MAP-VALS p])
-      coll? [ALL p]
-      STAY)))
 
 (def invariant
   (-> (invariant/on [:graphql/fragments ALL])
