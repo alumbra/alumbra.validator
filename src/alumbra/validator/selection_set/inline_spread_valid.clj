@@ -23,7 +23,6 @@
       (invariant/fmap add-scope-type)
       (invariant/each
         (invariant/and
-          ;; TODO: fragment type must exist
           ;; TODO: fragment type must either be an interface the scope type
           ;;       implements or a union containing it (or the scope type
           ;;       itself).
