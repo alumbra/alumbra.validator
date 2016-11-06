@@ -27,7 +27,7 @@
 
 (defn- add-scope-type
   [{:keys [analyzer/fields]} {:keys [graphql/field-name] :as data}]
-  (if-let [t (get-in fields [field-name :graphql/type-name])]
+  (if-let [t (get-in fields [field-name :analyzer/type-name])]
     (assoc data :validator/scope-type t)
     data))
 
@@ -37,12 +37,20 @@
         :graphql/field-name))
 
 (defn- valid-subselection?
-  [{:keys [analyzer/known-composite-types]}]
+  [{:keys [analyzer/known-types
+           analyzer/known-composite-types]}]
   (fn [{:keys [validator/scope-type
                graphql/selection-set]}]
-    (if (contains? known-composite-types scope-type)
-      (seq selection-set)
-      (empty? selection-set))))
+    (or (not (contains? known-types scope-type))
+        (if (contains? known-composite-types scope-type)
+          (seq selection-set)
+          (empty? selection-set)))))
+
+(defn- describe-error
+  [{:keys [analyzer/type-name]}]
+  (fn [_ {:keys [graphql/field-name]}]
+    {:type-name  type-name
+     :field-name field-name}))
 
 ;; ## Fields
 
@@ -60,9 +68,11 @@
           (invariant/and
             (invariant/value
               :validator/field-name-in-scope
-              allowed-field?)
+              allowed-field?
+              (describe-error type))
             (invariant/value
               :validator/leaf-field-selection
-              allowed-subselection?)
+              allowed-subselection?
+              (describe-error type))
             (arguments-valid/invariant type)
             selection-set-valid?)))))

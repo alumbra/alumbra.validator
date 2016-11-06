@@ -30,7 +30,7 @@
                       graphql/type-field-arguments]}]
       (assoc-in data
                 [:analyzer/fields field-name]
-                {:graphql/type-name (read-type-name type)
+                {:analyzer/type-name (read-type-name type)
                  :analyzer/arguments (read-arguments type-field-arguments)}))
     data fields))
 
