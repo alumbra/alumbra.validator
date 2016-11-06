@@ -9,16 +9,27 @@
             [clojure.spec :as s]
             [com.rpl.specter :refer :all]))
 
+(defn aggregate
+  [{:keys [analyzer/scalars] :as schema}]
+  (->> (for [k [:analyzer/types
+                :analyzer/interfaces
+                :analyzer/unions]]
+         (keys (get schema k)))
+       (apply concat)
+       (into scalars)
+       (assoc schema :analyzer/known-selection-types)))
+
 (defn analyze
   "Analyze a GraphQL schema conforming to `:graphql/schema` to produce a
    more compact representation conforming to `:analyzer/schema`."
   [schema]
-  (merge
-    (directives/analyze schema)
-    (scalars/analyze schema)
-    (schema-root/analyze schema)
-    (types/analyze schema)
-    (unions/analyze schema)))
+  (-> (merge
+        (directives/analyze schema)
+        (scalars/analyze schema)
+        (schema-root/analyze schema)
+        (types/analyze schema)
+        (unions/analyze schema))
+      (aggregate)))
 
 (s/fdef analyze
         :args (s/cat :schema :graphql/schema)

@@ -8,7 +8,12 @@
                 :analyzer/directives
                 :analyzer/schema-root
                 :analyzer/scalars
-                :analyzer/unions]))
+                :analyzer/unions
+                :analyzer/known-selection-types]))
+
+(s/def :analyzer/known-selection-types
+  (s/coll-of :graphql/type-name
+             :gen-max 5))
 
 (s/def :analyzer/types
   (s/map-of :graphql/type-name :analyzer/type))
