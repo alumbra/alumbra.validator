@@ -1,6 +1,7 @@
 (ns alumbra.validator.selection-set
   (:require [alumbra.validator.selection-set
-             [field-valid :as field-valid]]
+             [field-valid :as field-valid]
+             [inline-spread-valid :as inline-spread-valid]]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -9,7 +10,8 @@
 (defn- make-selection-set-invariant
   [schema type self]
   (invariant/and
-    (field-valid/invariant schema type self)))
+    (field-valid/invariant schema type self)
+    (inline-spread-valid/invariant schema type self)))
 
 (defn- generate-invariants
   [schema k self]
