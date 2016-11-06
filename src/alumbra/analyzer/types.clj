@@ -30,7 +30,8 @@
                       graphql/type-fields]
                :as interface}]
       (->> {:analyzer/implemented-by #{}
-            :analyzer/fields {}}
+            :analyzer/fields {}
+            :analyzer/type-name type-name}
            (add-type-fields type-fields)
            (assoc-in data  [:analyzer/interfaces type-name])))
     data interface-definitions))
@@ -63,7 +64,8 @@
                       graphql/type-fields
                       graphql/interface-types]}]
       (->> {:analyzer/implements #{}
-            :analyzer/fields {}}
+            :analyzer/fields {}
+            :analyzer/type-name type-name}
            (add-type-fields type-fields)
            (assoc-in data [:analyzer/types type-name])
            (add-implements type-name interface-types)))
@@ -77,10 +79,12 @@
     (fn [data {:keys [graphql/type-name
                       graphql/type-fields
                       graphql/interface-types]}]
-      (-> data
-          (update-in [:analyzer/types type-name]
-                     #(add-type-fields type-fields %))
-          (->> (add-implements type-name interface-types))))
+      (if (get-in data [:analyzer/types type-name])
+        (-> data
+            (update-in [:analyzer/types type-name]
+                       #(add-type-fields type-fields %))
+            (->> (add-implements type-name interface-types)))
+        data))
     data type-extensions))
 
 ;; ## Input Types
@@ -92,7 +96,8 @@
                       graphql/input-type-fields
                       graphql/interface-types]}]
       (->> {:analyzer/implements #{}
-            :analyzer/fields {}}
+            :analyzer/fields {}
+            :analyzer/type-name type-name}
            (add-type-fields input-type-fields)
            (assoc-in data [:analyzer/input-types type-name])))
     data input-type-definitions))

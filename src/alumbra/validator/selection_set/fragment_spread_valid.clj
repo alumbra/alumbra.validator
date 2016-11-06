@@ -43,10 +43,12 @@
 
 (defn collect-valid-spread-types
   [{:keys [analyzer/unions]}
-   {:keys [analyzer/implements
+   {:keys [analyzer/type-name
+           analyzer/implements
            analyzer/implemented-by
            analyzer/union-types]}]
   (let [allowed-types (set (concat implements implemented-by union-types))
+        allowed-types (cond-> allowed-types type-name (conj type-name))
         allowed-union-types
         (keep
           (fn [[union-type-name union-types]]
@@ -62,20 +64,17 @@
 (defn- valid-inline-spread-type?
   [schema type]
   (let [spread-type-valid? (set (collect-valid-spread-types schema type))]
-    (fn [{:keys [validator/fragment-spread-scope-type]} value]
+    (fn [value]
       (let [t (fragment-spread-type value)]
-        (or (spread-type-valid? t)
-            (= fragment-spread-scope-type t))))))
+        (spread-type-valid? t)))))
 
 (defn- valid-named-spread-type?
   [schema type]
   (let [spread-type-valid? (set (collect-valid-spread-types schema type))]
-    (fn [{:keys [validator/fragment-spread-scope-type
-                 validator/fragment-types]}
+    (fn [{:keys [validator/fragment-types]}
          {:keys [graphql/fragment-name]}]
       (let [t (get fragment-types fragment-name)]
-        (or (spread-type-valid? t)
-            (= fragment-spread-scope-type t))))))
+        (spread-type-valid? t)))))
 
 ;; ## Invariants
 
@@ -83,12 +82,10 @@
   [schema type selection-set-valid?]
   (-> (invariant/on
         [:graphql/selection-set ALL inline-spread-selection?])
-      (invariant/as
-        :validator/fragment-spread-scope-type :validator/scope-type)
       (invariant/fmap add-scope-type)
       (invariant/each
         (invariant/and
-          (invariant/property
+          (invariant/value
             :validator/fragment-spread-type-in-scope
             (valid-inline-spread-type? schema type))
           selection-set-valid?))))
@@ -97,8 +94,6 @@
   [schema type selection-set-valid?]
   (-> (invariant/on
         [:graphql/selection-set ALL named-spread-selection?])
-      (invariant/as
-        :validator/fragment-spread-scope-type :validator/scope-type)
       (invariant/each
         (invariant/and
           (invariant/property

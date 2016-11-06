@@ -31,7 +31,11 @@
 
 (s/def :analyzer/type
   (s/keys :req [:analyzer/implements
+                :analyzer/type-name
                 :analyzer/fields]))
+
+(s/def :analyzer/type-name
+  :graphql/type-name)
 
 (s/def :analyzer/implements
   (s/coll-of :graphql/type-name
