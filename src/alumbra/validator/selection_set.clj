@@ -31,6 +31,9 @@
     [type-name (make-union-selection-set-invariant schema union-types self)]))
 
 (defn- selection-set-valid?
+  "Recursive invariant on selection sets. Expects input data to have the field
+   `:validator/scope-type`, so before calling this invariant the field should
+   be attached."
   [schema]
   (invariant/recursive-fn
     [self]
