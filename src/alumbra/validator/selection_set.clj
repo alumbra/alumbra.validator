@@ -43,15 +43,17 @@
    `:validator/scope-type`, so before calling this invariant the field should
    be attached."
   [schema]
-  (invariant/recursive-fn
+  (invariant/recursive
     [self]
-    (comp
-      (->> (concat
-             (generate-invariants schema :analyzer/types self)
-             (generate-invariants schema :analyzer/interfaces self)
-             (generate-union-invariants schema self))
-           (into {}))
-      :validator/scope-type)))
+    (let [type->invariant
+          (->> (concat
+                 (generate-invariants schema :analyzer/types self)
+                 (generate-invariants schema :analyzer/interfaces self)
+                 (generate-union-invariants schema self))
+               (into {}))]
+      (invariant/bind
+        (fn [_ {:keys [validator/scope-type]}]
+          (type->invariant scope-type))))))
 
 ;; ## Invariant
 
