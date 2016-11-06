@@ -10,13 +10,13 @@
             [com.rpl.specter :refer :all]))
 
 (defn aggregate
-  [{:keys [analyzer/scalars] :as schema}]
+  [schema]
   (->> (for [k [:analyzer/types
                 :analyzer/interfaces
                 :analyzer/unions]]
          (keys (get schema k)))
        (apply concat)
-       (into scalars)
+       (into #{})
        (assoc schema :analyzer/known-selection-types)))
 
 (defn analyze
