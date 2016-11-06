@@ -2,6 +2,21 @@
   (:require [invariant.core :as invariant]
             [com.rpl.specter :refer [ALL]]))
 
+;; Formal Specification (5.2.1)
+;; ---
+;; - For each `selection` in the document.
+;; - Let `fieldName` be the target field of `selection`
+;;   - `fieldName` must be defined on type in scope
+
+;; Formal Specification (5.2.3)
+;; ---
+;; - For each `selection` in the document
+;; - Let `selectionType` be the result type of selection
+;;   - If `selectionType` is a scalar:
+;;     - The subselection set of that `selection` must be empty
+;;   - If `selectionType` is an interface, union, or object
+;;     - The subselection set of that `selection` must NOT BE empty
+
 ;; ## Helper
 
 (defn- field-selection?
@@ -19,11 +34,20 @@
   (comp (into #{"__typename"} (keys fields))
         :graphql/field-name))
 
+(defn- valid-subselection?
+  [{:keys [analyzer/known-selection-types]}]
+  (fn [{:keys [validator/scope-type
+               graphql/selection-set]}]
+    (if (contains? known-selection-types scope-type)
+      (seq selection-set)
+      (empty? selection-set))))
+
 ;; ## Fields
 
 (defn invariant
   [schema type selection-set-valid?]
-  (let [allowed-field? (valid-field-name? type)]
+  (let [allowed-field? (valid-field-name? type)
+        allowed-subselection? (valid-subselection? schema)]
     (-> (invariant/on
           [:graphql/selection-set ALL field-selection?])
         (invariant/as
@@ -32,5 +56,10 @@
           #(add-scope-type type %))
         (invariant/each
           (invariant/and
-            (invariant/value :validator/field-name-in-scope allowed-field?)
+            (invariant/value
+              :validator/field-name-in-scope
+              allowed-field?)
+            (invariant/value
+              :validator/leaf-field-selection
+              allowed-subselection?)
             selection-set-valid?)))))
