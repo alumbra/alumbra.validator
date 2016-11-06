@@ -10,14 +10,16 @@
             [com.rpl.specter :refer :all]))
 
 (defn aggregate
-  [schema]
-  (->> (for [k [:analyzer/types
-                :analyzer/interfaces
-                :analyzer/unions]]
-         (keys (get schema k)))
-       (apply concat)
-       (into #{})
-       (assoc schema :analyzer/known-selection-types)))
+  [{:keys [analyzer/scalars] :as schema}]
+  (let [composite-types (->> (for [k [:analyzer/types
+                                      :analyzer/interfaces
+                                      :analyzer/unions]]
+                               (keys (get schema k)))
+                             (apply concat)
+                             (into #{}))]
+    (assoc schema
+           :analyzer/known-types (into scalars composite-types)
+           :analyzer/known-composite-types composite-types)))
 
 (defn analyze
   "Analyze a GraphQL schema conforming to `:graphql/schema` to produce a

@@ -9,9 +9,14 @@
                 :analyzer/schema-root
                 :analyzer/scalars
                 :analyzer/unions
-                :analyzer/known-selection-types]))
+                :analyzer/known-types
+                :analyzer/known-composite-types]))
 
-(s/def :analyzer/known-selection-types
+(s/def :analyzer/known-types
+  (s/coll-of :graphql/type-name
+             :gen-max 5))
+
+(s/def :analyzer/known-composite-types
   (s/coll-of :graphql/type-name
              :gen-max 5))
 

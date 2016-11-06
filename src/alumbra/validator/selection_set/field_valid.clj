@@ -35,10 +35,10 @@
         :graphql/field-name))
 
 (defn- valid-subselection?
-  [{:keys [analyzer/known-selection-types]}]
+  [{:keys [analyzer/known-composite-types]}]
   (fn [{:keys [validator/scope-type
                graphql/selection-set]}]
-    (if (contains? known-selection-types scope-type)
+    (if (contains? known-composite-types scope-type)
       (seq selection-set)
       (empty? selection-set))))
 
