@@ -7,5 +7,7 @@
             :key "mit"}
   :dependencies [[org.clojure/clojure "1.9.0-alpha14" :scope "provided"]
                  [invariant "0.1.0-SNAPSHOT"]]
-  :profiles {:dev {:dependencies [[alumbra/parser "0.1.0-SNAPSHOT"]]}}
+  :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]
+                                  [alumbra/parser "0.1.0-SNAPSHOT"]
+                                  [alumbra/generators "0.1.0"]]}}
   :pedantic? :abort)
