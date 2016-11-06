@@ -14,16 +14,36 @@
          :validator/scope-type
          (:graphql/type-name type-condition)))
 
+(defn collect-valid-spread-types
+  [schema {:keys [analyzer/implements
+                  analyzer/implemented-by
+                  analyzer/union-types]}]
+  (set (concat implements implemented-by union-types)))
+
+(defn- fragment-spread-type
+  [spread]
+  (-> spread :graphql/type-condition :graphql/type-name))
+
+(defn- valid-spread-type?
+  [schema type]
+  (let [spread-type-valid? (set (collect-valid-spread-types schema type))]
+    (fn [{:keys [validator/fragment-spread-scope-type]} value]
+      (let [t (fragment-spread-type value)]
+        (or (spread-type-valid? t)
+            (= fragment-spread-scope-type t))))))
+
 ;; ## Invariant
 
 (defn invariant
-  [schema selection-set-valid?]
+  [schema type selection-set-valid?]
   (-> (invariant/on
         [:graphql/selection-set ALL inline-spread-selection?])
+      (invariant/as
+        :validator/fragment-spread-scope-type :validator/scope-type)
       (invariant/fmap add-scope-type)
       (invariant/each
         (invariant/and
-          ;; TODO: fragment type must either be an interface the scope type
-          ;;       implements or a union containing it (or the scope type
-          ;;       itself).
+          (invariant/property
+            :validator/fragment-spread-type-in-scope
+            (valid-spread-type? schema type))
           selection-set-valid?))))

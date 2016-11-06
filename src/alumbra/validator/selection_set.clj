@@ -12,7 +12,7 @@
   [schema type self]
   (invariant/and
     (field-valid/invariant schema type self)
-    (inline-spread-valid/invariant schema self)))
+    (inline-spread-valid/invariant schema type self)))
 
 (defn- generate-invariants
   [schema k self]
@@ -22,8 +22,11 @@
 (defn- make-union-selection-set-invariant
   [schema union-types self]
   (invariant/and
-    (inline-spread-valid/invariant schema self)
-    (union-field-valid/invariant schema self)))
+    (union-field-valid/invariant schema self)
+    (inline-spread-valid/invariant
+      schema
+      {:analyzer/union-types union-types}
+      self)))
 
 (defn- generate-union-invariants
   [{:keys [analyzer/unions] :as schema} self]
