@@ -22,7 +22,10 @@
 (defn- make-union-selection-set-invariant
   [schema union-types self]
   (invariant/and
-    (union-field-valid/invariant schema self)
+    (field-valid/invariant
+      schema
+      {:analyzer/fields {}}
+      self)
     (inline-spread-valid/invariant
       schema
       {:analyzer/union-types union-types}
