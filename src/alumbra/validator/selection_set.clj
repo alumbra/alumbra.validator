@@ -1,8 +1,7 @@
 (ns alumbra.validator.selection-set
   (:require [alumbra.validator.selection-set
              [field-valid :as field-valid]
-             [inline-spread-valid :as inline-spread-valid]
-             [union-field-valid :as union-field-valid]]
+             [fragment-spread-valid :as fragment-spread-valid]]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -12,7 +11,7 @@
   [schema type self]
   (invariant/and
     (field-valid/invariant schema type self)
-    (inline-spread-valid/invariant schema type self)))
+    (fragment-spread-valid/invariant schema type self)))
 
 (defn- generate-invariants
   [schema k self]
@@ -26,7 +25,7 @@
       schema
       {:analyzer/fields {}}
       self)
-    (inline-spread-valid/invariant
+    (fragment-spread-valid/invariant
       schema
       {:analyzer/union-types union-types}
       self)))
@@ -65,13 +64,28 @@
     (assoc data :validator/scope-type t)
     data))
 
+(defn- add-known-fragments
+  [invariant]
+  (invariant/as
+    invariant
+    :validator/fragment-types
+    [:graphql/fragments
+     ALL
+     (collect-one :graphql/fragment-name)
+     :graphql/type-condition
+     (must :graphql/type-name)]
+    conj {}))
+
 (defn invariant
   [{:keys [analyzer/schema-root] :as schema}]
   (let [inv (selection-set-valid? schema)]
-    (invariant/and
-      (-> (invariant/on [:graphql/operations ALL])
-          (invariant/fmap #(add-operation-scope-type schema %))
-          (invariant/each inv))
-      (-> (invariant/on [:graphql/fragments ALL])
-          (invariant/fmap #(add-fragment-scope-type %))
-          (invariant/each inv)))))
+    (-> (invariant/on-current-value)
+        (add-known-fragments)
+        (invariant/is?
+          (invariant/and
+            (-> (invariant/on [:graphql/operations ALL])
+                (invariant/fmap #(add-operation-scope-type schema %))
+                (invariant/each inv))
+            (-> (invariant/on [:graphql/fragments ALL])
+                (invariant/fmap #(add-fragment-scope-type %))
+                (invariant/each inv)))))))

@@ -1,4 +1,4 @@
-(ns alumbra.validator.selection-set.inline-spread-valid
+(ns alumbra.validator.selection-set.fragment-spread-valid
   (:require [invariant.core :as invariant]
             [com.rpl.specter :refer [ALL]]
             [clojure.set :as set]))
@@ -31,6 +31,10 @@
   [selection]
   (contains? selection :graphql/type-condition))
 
+(defn- named-spread-selection?
+  [selection]
+  (contains? selection :graphql/fragment-name))
+
 (defn- add-scope-type
   [{:keys [graphql/type-condition] :as data}]
   (assoc data
@@ -55,7 +59,7 @@
   [spread]
   (-> spread :graphql/type-condition :graphql/type-name))
 
-(defn- valid-spread-type?
+(defn- valid-inline-spread-type?
   [schema type]
   (let [spread-type-valid? (set (collect-valid-spread-types schema type))]
     (fn [{:keys [validator/fragment-spread-scope-type]} value]
@@ -63,9 +67,19 @@
         (or (spread-type-valid? t)
             (= fragment-spread-scope-type t))))))
 
-;; ## Invariant
+(defn- valid-named-spread-type?
+  [schema type]
+  (let [spread-type-valid? (set (collect-valid-spread-types schema type))]
+    (fn [{:keys [validator/fragment-spread-scope-type
+                 validator/fragment-types]}
+         {:keys [graphql/fragment-name]}]
+      (let [t (get fragment-types fragment-name)]
+        (or (spread-type-valid? t)
+            (= fragment-spread-scope-type t))))))
 
-(defn invariant
+;; ## Invariants
+
+(defn inline-spread-invariant
   [schema type selection-set-valid?]
   (-> (invariant/on
         [:graphql/selection-set ALL inline-spread-selection?])
@@ -76,5 +90,24 @@
         (invariant/and
           (invariant/property
             :validator/fragment-spread-type-in-scope
-            (valid-spread-type? schema type))
+            (valid-inline-spread-type? schema type))
           selection-set-valid?))))
+
+(defn named-spread-invariant
+  [schema type selection-set-valid?]
+  (-> (invariant/on
+        [:graphql/selection-set ALL named-spread-selection?])
+      (invariant/as
+        :validator/fragment-spread-scope-type :validator/scope-type)
+      (invariant/each
+        (invariant/and
+          (invariant/property
+            :validator/fragment-spread-type-in-scope
+            (valid-named-spread-type? schema type))
+          selection-set-valid?))))
+
+(defn invariant
+  [schema type selection-set-valid?]
+  (invariant/and
+    (inline-spread-invariant schema type selection-set-valid?)
+    (named-spread-invariant schema type selection-set-valid?)))
