@@ -2,6 +2,15 @@
   (:require [alumbra.validator.selection-set :as selection-set]
             [invariant.core :as invariant]))
 
+;; Formal Specification (5.2.3)
+;; ---
+;; - For each `selection` in the document
+;; - Let `selectionType` be the result type of selection
+;;   - If `selectionType` is a scalar:
+;;     - The subselection set of that `selection` must be empty
+;;   - If `selectionType` is an interface, union, or object
+;;     - The subselection set of that `selection` must NOT BE empty
+
 (defn- valid-subselection?
   [{:keys [analyzer/type->kind]}]
   (fn [{:keys [validator/scope-type
