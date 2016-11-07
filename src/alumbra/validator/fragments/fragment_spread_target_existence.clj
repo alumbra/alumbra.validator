@@ -9,22 +9,19 @@
 ;; - Let `fragment` be the target of `namedSpread`
 ;;   - `fragment` must be defined in the document
 
-(defn invariant
-  [_]
-  (-> (invariant/on
-        [(multi-path
-           [:graphql/operations (walker :graphql/fragment-name)]
-           [:graphql/fragments
-            ALL
-            (must :graphql/selection-set)
-            (walker :graphql/fragment-name) ])])
-      (invariant/collect-as
-        :validator/known-fragments
-        [:graphql/fragments ALL (must :graphql/fragment-name)])
+(defn invariant-state
+  [invariant]
+  (invariant/collect-as
+    invariant
+    ::known-fragments
+    [:graphql/fragments ALL (must :graphql/fragment-name)]))
+
+(def invariant
+  (-> (invariant/on [ALL u/all-named-fragments])
       (invariant/each
         (u/with-fragment-context
           (invariant/property
             :validator/fragment-spread-target-existence
-            (fn [{:keys [validator/known-fragments]}
+            (fn [{:keys [::known-fragments]}
                  {:keys [graphql/fragment-name]}]
               (contains? known-fragments fragment-name)))))))

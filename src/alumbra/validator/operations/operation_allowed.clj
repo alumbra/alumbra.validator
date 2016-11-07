@@ -10,7 +10,7 @@
 (defn invariant
   [{:keys [analyzer/schema-root]}]
   (let [allowed-type? (set (keys schema-root))]
-    (-> (invariant/on [:graphql/operations ALL])
+    (-> (invariant/on [ALL])
         (invariant/each
           (invariant/value
             :validator/operation-allowed

@@ -12,10 +12,9 @@
 ;; Let namedDirectives be the set of all Directives named directiveName in directives.
 ;; namedDirectives must be a set of one.
 
-(def invariant
-  (-> (invariant/on [(walker :graphql/directives)])
-      (invariant/each
-        (-> (invariant/on [:graphql/directives ALL])
-            (invariant/unique
-              :validator/directive-uniqueness
-              {:unique-by :graphql/directive-name})))))
+(def invariant-fn
+  (constantly
+    (-> (invariant/on [:graphql/directives ALL])
+        (invariant/unique
+          :validator/directive-uniqueness
+          {:unique-by :graphql/directive-name}))))

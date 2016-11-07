@@ -4,30 +4,27 @@
 
 ;; ## Specter
 
-(def dfs
-  "DFS specter navigator."
+(def all-named-fragments
   (recursive-path
-    [k]
+    []
     p
     (cond-path
-      map?  (multi-path (must k) [MAP-VALS p])
-      coll? [ALL p]
+      :graphql/selection-set
+      [:graphql/selection-set
+       ALL
+       (multi-path
+         #(contains? % :graphql/fragment-name)
+         p)]
       STAY)))
 
-(defn all-fragments-in
+(def all-fragment-names
+  [all-named-fragments :graphql/fragment-name])
+
+(defn all-fragment-names-in
   [base-key]
   [base-key
    ALL
-   :graphql/selection-set
-   ALL
-   (dfs :graphql/fragment-name)])
-
-(def all-fragment-names
-  [ALL (dfs :graphql/fragment-name)])
-
-(def spread?
-  "A specter path finding all fragment spreads."
-  (walker :graphql/type-condition))
+   all-fragment-names])
 
 ;; ## Invariant
 
@@ -44,16 +41,3 @@
     (fn [_ {:keys [graphql/fragment-name] :as fragment}]
       {:analyzer/fragment-name fragment-name
        :analyzer/type-name     (type-name fragment)})))
-
-(defn fragment-spread-invariant
-  "An invariant applied to each fragment spread within
-   the document."
-  [invariant]
-  (invariant/recursive
-    [self]
-    (-> (invariant/on [spread?])
-        (invariant/each
-          (invariant/and
-            (with-fragment-context invariant)
-            (-> (invariant/on [:graphql/selection-set])
-                (invariant/is? self)))))))

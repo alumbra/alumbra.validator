@@ -14,9 +14,9 @@
   (comp (set (keys directives))
         :graphql/directive-name))
 
-(defn invariant
-  [schema]
-  (-> (invariant/on [(walker :graphql/directive-name)])
+(defn invariant-fn
+  [schema _]
+  (-> (invariant/on [:graphql/directives ALL])
       (invariant/each
         (-> (invariant/value
               :validator/directive-defined

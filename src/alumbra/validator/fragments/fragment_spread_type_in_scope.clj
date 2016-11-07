@@ -7,41 +7,48 @@
 ;; ## Helpers
 
 (defn- valid-inline-spread-type?
-  [{:keys [analyzer/valid-fragment-spreads]}]
+  [{:keys [analyzer/type->kind]}
+   {:keys [analyzer/valid-fragment-spreads]}]
   (fn [_ value]
-    (contains? valid-fragment-spreads (u/type-name value))))
+    (let [t (u/type-name value)]
+      (or (not (contains? type->kind t))
+          (contains? valid-fragment-spreads t)))))
 
 (defn- valid-named-spread-type?
-  [{:keys [analyzer/valid-fragment-spreads]}]
+  [{:keys [analyzer/type->kind]}
+   {:keys [analyzer/valid-fragment-spreads]}]
   (fn [{:keys [::fragment-types]}
        {:keys [graphql/fragment-name]}]
     (let [t (get fragment-types fragment-name)]
       (or (not t)
+          (not (contains? type->kind t))
           (contains? valid-fragment-spreads t)))))
 
 (defn- fragment-spread-invariant
-  [f type]
+  [f schema type]
   (u/with-fragment-context
     (invariant/property
       :validator/fragment-spread-type-in-scope
-      (f type))))
+      (f schema type))))
 
 ;; ## Invariant
 
-(defn invariant
-  [schema]
-  (-> (invariant/on-current-value)
-      (invariant/as
-        ::fragment-types
-        [:graphql/fragments
-         ALL
-         (collect-one :graphql/fragment-name)
-         :graphql/type-condition
-         (must :graphql/type-name)]
-        conj {})
-      (invariant/is?
-        (->> {:inline-spreads
-              #(fragment-spread-invariant valid-inline-spread-type?  %2)
-              :named-spreads
-              #(fragment-spread-invariant valid-named-spread-type?  %2)}
-             (selection-set/invariant schema)))))
+(defn invariant-state
+  [invariant]
+  (invariant/as
+    invariant
+    ::fragment-types
+    [:graphql/fragments
+     ALL
+     (collect-one :graphql/fragment-name)
+     :graphql/type-condition
+     (must :graphql/type-name)]
+    conj {}))
+
+(defn inline-spread-invariant
+  [schema type]
+  (fragment-spread-invariant valid-inline-spread-type? schema type))
+
+(defn named-spread-invariant
+  [schema type]
+  (fragment-spread-invariant valid-named-spread-type? schema type))

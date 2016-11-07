@@ -20,10 +20,9 @@
 
 (defn- collect-edges
   [fragments]
-  (->> (for [{:keys [graphql/fragment-name
-                     graphql/selection-set]}
+  (->> (for [{:keys [graphql/fragment-name] :as fragment}
              fragments]
-         (->> selection-set
+         (->> fragment
               (traverse u/all-fragment-names)
               (into #{})
               (vector fragment-name)))
@@ -34,9 +33,7 @@
   (into {} (map (juxt :graphql/fragment-name identity) fragments)))
 
 (def invariant
-  (-> (invariant/on [:graphql/fragments])
-      (invariant/is?
-        (invariant/acyclic
-          :validator/fragment-spreads-acyclic
-          #(collect-edges %2)
-          #(describe-fragments %2)))))
+  (invariant/acyclic
+    :validator/fragment-spreads-acyclic
+    #(collect-edges %2)
+    #(describe-fragments %2)))

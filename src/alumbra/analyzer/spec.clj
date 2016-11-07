@@ -1,5 +1,6 @@
 (ns alumbra.analyzer.spec
-  (:require [clojure.spec :as s]))
+  (:require [clojure.spec :as s]
+            [alumbra.spec]))
 
 ;; ## Names
 

@@ -10,10 +10,12 @@
 
 (defn invariant
   [{:keys [analyzer/type->kind]}]
-  (u/fragment-spread-invariant
-    (invariant/value
-      :validator/fragment-on-composite-type
-      (fn [fragment]
-        (let [t    (u/type-name fragment)
-              kind (get type->kind t ::none)]
-          (contains? #{::none :union :interface :type} kind))))))
+  (-> (invariant/on [ALL])
+      (invariant/each
+        (u/with-fragment-context
+          (invariant/value
+            :validator/fragment-on-composite-type
+            (fn [fragment]
+              (let [t    (u/type-name fragment)
+                    kind (get type->kind t ::none)]
+                (contains? #{::none :union :interface :type} kind))))))))

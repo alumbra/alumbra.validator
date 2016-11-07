@@ -11,6 +11,6 @@
 ;;   - `fragments` must be a set of one.
 
 (def invariant
-  (-> (invariant/on [:graphql/fragments ALL])
+  (-> (invariant/on [ALL])
       (invariant/unique :validator/fragment-name-uniqueness
                         {:unique-by :graphql/fragment-name})))

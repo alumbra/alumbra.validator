@@ -75,13 +75,3 @@
       (-> (invariant/on [:graphql/fragments ALL])
           (invariant/fmap #(add-fragment-scope-type %))
           (invariant/each inv)))))
-
-(defn merged-invariant
-  [schema child-invariants]
-  (let [child-invariants (apply merge-with
-                                (fn [a b]
-                                  #(invariant/and
-                                     (a %1 %2)
-                                     (b %1 %2)))
-                                child-invariants)]
-    (invariant schema child-invariants)))

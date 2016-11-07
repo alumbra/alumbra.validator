@@ -10,13 +10,12 @@
 ;;   which contains `argument`.
 ;; - `arguments` must be the set containing only argument.
 
-(def selection-set-invariant
-  {:fields
-   (constantly
-     (let [inv (-> (invariant/on [:graphql/arguments ALL])
-                   (invariant/unique :validator/argument-uniqueness
-                                     {:unique-by :graphql/argument-name}))]
-       (invariant/and
-         inv
-         (-> (invariant/on [:graphql/directives ALL])
-             (invariant/each inv)))))})
+(def invariant-fn
+  (constantly
+    (let [inv (-> (invariant/on [:graphql/arguments ALL])
+                  (invariant/unique :validator/argument-uniqueness
+                                    {:unique-by :graphql/argument-name}))]
+      (invariant/and
+        inv
+        (-> (invariant/on [:graphql/directives ALL])
+            (invariant/each inv))))))

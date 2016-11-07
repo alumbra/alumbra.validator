@@ -2,10 +2,22 @@
   (:require [alumbra.validator.directives
              [directives-defined :as directives-defined]
              [directive-uniqueness :as directive-uniqueness]]
+            [alumbra.validator.builder :as b]
             [invariant.core :as invariant]))
 
-(defn invariant
-  [schema]
-  (invariant/and
-    directive-uniqueness/invariant
-    (directives-defined/invariant schema)))
+(def ^:private selection-set-invariants
+  [directive-uniqueness/invariant-fn
+   directives-defined/invariant-fn])
+
+(def builder
+  (reify b/ValidatorBuilder
+    (invariant-state [_ invariant]
+      invariant)
+    (for-fields [_ schema]
+      selection-set-invariants)
+    (for-fragment-spreads [_ schema]
+      selection-set-invariants)
+    (for-inline-spreads [_ schema]
+      selection-set-invariants)
+    (for-operations [_ _])
+    (for-fragments [_ _])))

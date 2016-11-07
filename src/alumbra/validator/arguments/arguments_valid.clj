@@ -88,5 +88,5 @@
       (fn [_ {:keys [graphql/field-name]}]
         (field->invariant field-name)))))
 
-(def selection-set-invariant
-  {:fields #(argument-invariant %2)})
+(def invariant-fn
+  #(argument-invariant %2))
