@@ -1,6 +1,7 @@
 (ns alumbra.validator
   (:require [alumbra.validator
              [arguments :as arguments]
+             [directives :as directives]
              [fields :as fields]
              [fragments :as fragments]
              [operations :as operations]]
@@ -12,6 +13,7 @@
   [analyzed-schema]
   (invariant/and
     (arguments/invariant analyzed-schema)
+    (directives/invariant analyzed-schema)
     (fragments/invariant analyzed-schema)
     (fields/invariant analyzed-schema)
     (operations/invariant analyzed-schema)))
