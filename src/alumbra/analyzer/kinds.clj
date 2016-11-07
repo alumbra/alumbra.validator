@@ -13,10 +13,17 @@
        (map #(vector % kind))
        (update schema :analyzer/type->kind into)))
 
+(def ^:private known-types
+  {"Boolean" :scalar
+   "Float"   :scalar
+   "ID"      :scalar
+   "Int"     :scalar
+   "String"  :scalar})
+
 (defn aggregate
   [schema]
   (-> schema
-      (assoc :analyzer/type->kind {})
+      (assoc :analyzer/type->kind known-types)
       (aggregate-map :analyzer/types       :type)
       (aggregate-map :analyzer/interfaces  :interface)
       (aggregate-map :analyzer/unions      :union)
