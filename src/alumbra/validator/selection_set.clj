@@ -1,8 +1,8 @@
 (ns alumbra.validator.selection-set
   (:require [alumbra.validator.selection-set
              [field :as field]
-             [inline-spread :as inline-spreads]
-             [named-spread :as named-spreads]]
+             [inline-spread :as inline-spread]
+             [named-spread :as named-spread]]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -10,12 +10,18 @@
 
 (defn- make-selection-set-invariant
   [schema type {:keys [fields inline-spreads named-spreads]} self]
-  (->> (vector
-         (field/make-invariant schema type fields self)
-         (named-spreads/make-invariant schema type named-spreads self)
-         (inline-spreads/make-invariant schema type inline-spreads self))
-       (filter identity)
-       (apply invariant/and)))
+  (let [field-invariant         (field/make-invariant schema type fields self)
+        named-spread-invariant  (named-spread/make-invariant schema type named-spreads self)
+        inline-spread-invariant (inline-spread/make-invariant schema type inline-spreads self)]
+    (-> (invariant/on [:graphql/selection-set ALL])
+        (invariant/each
+          (invariant/bind
+            (fn [_ {:keys [graphql/field-name
+                           graphql/type-condition
+                           graphql/fragment-name] :as x}]
+              (cond field-name     field-invariant
+                    fragment-name  named-spread-invariant
+                    type-condition inline-spread-invariant)))))))
 
 (defn- generate-invariants
   [schema k child-invariants self]

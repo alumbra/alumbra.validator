@@ -8,7 +8,7 @@
 
 (defn- valid-inline-spread-type?
   [{:keys [analyzer/valid-fragment-spreads]}]
-  (fn [value]
+  (fn [_ value]
     (contains? valid-fragment-spreads (u/type-name value))))
 
 (defn- valid-named-spread-type?
