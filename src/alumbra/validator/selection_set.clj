@@ -18,26 +18,6 @@
   (for [[type-name type] (get schema k)]
     [type-name (make-selection-set-invariant schema type self)]))
 
-(defn- make-union-selection-set-invariant
-  [schema type-name union-types self]
-  (invariant/and
-    (field-valid/invariant
-      schema
-      {:analyzer/type-name type-name
-       :analyzer/fields {}}
-      self)
-    (fragment-spread-valid/invariant
-      schema
-      {:analyzer/type-name type-name
-       :analyzer/union-types union-types}
-      self)))
-
-(defn- generate-union-invariants
-  [{:keys [analyzer/unions] :as schema} self]
-  (for [[type-name union-types] unions]
-    [type-name
-     (make-union-selection-set-invariant schema type-name union-types self)]))
-
 (defn- selection-set-valid?
   "Recursive invariant on selection sets. Expects input data to have the field
    `:validator/scope-type`, so before calling this invariant the field should
@@ -49,7 +29,7 @@
           (->> (concat
                  (generate-invariants schema :analyzer/types self)
                  (generate-invariants schema :analyzer/interfaces self)
-                 (generate-union-invariants schema self))
+                 (generate-invariants schema :analyzer/unions self))
                (into {}))]
       (invariant/bind
         (fn [_ {:keys [validator/scope-type]}]

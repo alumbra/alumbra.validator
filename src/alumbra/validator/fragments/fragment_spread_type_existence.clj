@@ -1,5 +1,7 @@
 (ns alumbra.validator.fragments.fragment-spread-type-existence
-  (:require [invariant.core :as invariant]
+  (:require [alumbra.validator.fragments
+             [fragment-on-composite-type :as fragment-on-composite-type]]
+            [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
 ;; Formal Specification (5.4.1.2)
@@ -8,33 +10,40 @@
 ;; - Let `fragment` be the target of `namedSpread`
 ;;   - The target type of `fragment` must be defined in the schema
 
-;; Formal Specification (5.4.1.3)
-;; ---
-;; - For each `fragment` defined in the document.
-;;   - The target type of ``fragment must have kind UNION, INTERFACE, or OBJECT.
+;; ## Helpers
 
 (def inline-spread?
   (walker :graphql/type-condition))
 
+(defn- type-name
+  [fragment]
+  (-> fragment :graphql/type-condition :graphql/type-name))
+
+(defn- with-fragment-context
+  [& invariants]
+  (invariant/with-error-context
+    (apply invariant/and invariants)
+    (fn [_ {:keys [graphql/fragment-name] :as fragment}]
+      {:analyzer/fragment-name fragment-name
+       :analyzer/type-name     (type-name fragment)})))
+
+;; ## Invariant
+
+(defn- fragment-spread-type-exists
+  [{:keys [analyzer/type->kind]}]
+  (invariant/value
+    :validator/fragment-spread-type-existence
+    #(contains? type->kind (type-name %))))
+
 (defn invariant
-  [{:keys [analyzer/known-types
-           analyzer/known-composite-types]}]
+  [schema]
   (invariant/recursive
     [self]
     (-> (invariant/on [inline-spread?])
         (invariant/each
           (invariant/and
-            (invariant/value
-              :validator/fragment-spread-on-composite-type
-              (fn [{:keys [graphql/type-condition]}]
-                (let [t (:graphql/type-name type-condition)]
-                  (or (not (contains? known-types t))
-                      (contains? known-composite-types t)))))
-            (invariant/value
-              :validator/fragment-spread-type-existence
-              (fn [{:keys [graphql/type-condition]}]
-                (contains?
-                  known-types
-                  (:graphql/type-name type-condition))))
+            (with-fragment-context
+              (fragment-spread-type-exists schema)
+              (fragment-on-composite-type/invariant schema))
             (-> (invariant/on [:graphql/selection-set])
                 (invariant/is? self)))))))

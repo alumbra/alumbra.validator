@@ -51,7 +51,7 @@
         allowed-types (cond-> allowed-types type-name (conj type-name))
         allowed-union-types
         (keep
-          (fn [[union-type-name union-types]]
+          (fn [[union-type-name {:keys [analyzer/union-types]}]]
             (when-not (empty? (set/intersection union-types allowed-types))
               union-type-name))
           unions)]

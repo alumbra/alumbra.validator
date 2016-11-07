@@ -37,42 +37,35 @@
         :graphql/field-name))
 
 (defn- valid-subselection?
-  [{:keys [analyzer/known-types
-           analyzer/known-composite-types]}]
+  [{:keys [analyzer/type->kind]}]
   (fn [{:keys [validator/scope-type
                graphql/selection-set]}]
-    (or (not (contains? known-types scope-type))
-        (if (contains? known-composite-types scope-type)
-          (seq selection-set)
-          (empty? selection-set)))))
+    (let [kind (get type->kind scope-type ::none)]
+      (or (= kind ::none)
+          (if (contains? #{:type :interface :union} kind)
+            (seq selection-set)
+            (empty? selection-set))))))
 
-(defn- describe-error
-  [{:keys [analyzer/type-name]}]
-  (fn [_ {:keys [graphql/field-name]}]
-    {:type-name  type-name
-     :field-name field-name}))
+(defn- with-field-context
+  [{:keys [analyzer/type-name]} & invariants]
+  (invariant/with-error-context
+    (apply invariant/and invariants)
+    (fn [_ {:keys [graphql/field-name]}]
+      {:analyzer/field-name           field-name
+       :analyzer/containing-type-name type-name})))
 
 ;; ## Fields
 
 (defn invariant
-  [schema type selection-set-valid?]
-  (let [allowed-field? (valid-field-name? type)
+  [schema field selection-set-valid?]
+  (let [allowed-field? (valid-field-name? field)
         allowed-subselection? (valid-subselection? schema)]
-    (-> (invariant/on
-          [:graphql/selection-set ALL field-selection?])
-        (invariant/as
-          :validator/field-scope-type :validator/scope-type)
-        (invariant/fmap
-          #(add-scope-type type %))
+    (-> (invariant/on [:graphql/selection-set ALL field-selection?])
+        (invariant/fmap #(add-scope-type field %))
         (invariant/each
           (invariant/and
-            (invariant/value
-              :validator/field-name-in-scope
-              allowed-field?
-              (describe-error type))
-            (invariant/value
-              :validator/leaf-field-selection
-              allowed-subselection?
-              (describe-error type))
-            (arguments-valid/invariant type)
+            (with-field-context field
+              (invariant/value :validator/field-name-in-scope allowed-field?)
+              (invariant/value :validator/leaf-field-selection allowed-subselection?)
+              (arguments-valid/invariant field))
             selection-set-valid?)))))

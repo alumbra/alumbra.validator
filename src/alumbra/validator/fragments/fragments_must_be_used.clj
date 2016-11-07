@@ -24,8 +24,11 @@
            ALL
            (dfs :graphql/fragment-name)]))
       (invariant/each
-        (invariant/property
-          :validator/fragment-must-be-used
-          (fn [{:keys [validator/used-fragments]}
-               {:keys [graphql/fragment-name]}]
-            (contains? used-fragments fragment-name))))))
+        (-> (invariant/property
+              :validator/fragment-must-be-used
+              (fn [{:keys [validator/used-fragments]}
+                   {:keys [graphql/fragment-name]}]
+                (contains? used-fragments fragment-name)))
+            (invariant/with-error-context
+              (fn [_ {:keys [graphql/fragment-name]}]
+                {:analyzer/fragment-name fragment-name}))))))
