@@ -12,6 +12,10 @@
     :named-type type-name
     :list-type  (read-type-name element-type)))
 
+(defn- read-non-null?
+  [{:keys [graphql/non-null?]}]
+  non-null?)
+
 (defn- read-arguments
   [arguments]
   (reduce
@@ -19,19 +23,24 @@
                         graphql/argument-type]}]
       (assoc result
              argument-name
-             {:analyzer/type-name (read-type-name argument-type)}))
+             {:analyzer/argument-name argument-name
+              :analyzer/type-name     (read-type-name argument-type)
+              :analyzer/non-null?     (read-non-null? argument-type)}))
     {} arguments))
 
 (defn- add-type-fields
-  [fields data]
+  [type-name fields data]
   (reduce
     (fn [data {:keys [graphql/field-name
                       graphql/type
                       graphql/type-field-arguments]}]
       (assoc-in data
                 [:analyzer/fields field-name]
-                {:analyzer/type-name (read-type-name type)
-                 :analyzer/arguments (read-arguments type-field-arguments)}))
+                {:analyzer/field-name field-name
+                 :analyzer/type-name  (read-type-name type)
+                 :analyzer/non-null?  (read-non-null? type)
+                 :analyzer/containing-type-name type-name
+                 :analyzer/arguments  (read-arguments type-field-arguments)}))
     data fields))
 
 ;; ## Interfaces
@@ -43,9 +52,9 @@
                       graphql/type-fields]
                :as interface}]
       (->> {:analyzer/implemented-by #{}
-            :analyzer/fields {}
-            :analyzer/type-name type-name}
-           (add-type-fields type-fields)
+            :analyzer/fields         {}
+            :analyzer/type-name      type-name}
+           (add-type-fields type-name type-fields)
            (assoc-in data  [:analyzer/interfaces type-name])))
     data interface-definitions))
 
@@ -77,9 +86,9 @@
                       graphql/type-fields
                       graphql/interface-types]}]
       (->> {:analyzer/implements #{}
-            :analyzer/fields {}
-            :analyzer/type-name type-name}
-           (add-type-fields type-fields)
+            :analyzer/fields     {}
+            :analyzer/type-name  type-name}
+           (add-type-fields type-name type-fields)
            (assoc-in data [:analyzer/types type-name])
            (add-implements type-name interface-types)))
     data type-definitions))
@@ -95,7 +104,7 @@
       (if (get-in data [:analyzer/types type-name])
         (-> data
             (update-in [:analyzer/types type-name]
-                       #(add-type-fields type-fields %))
+                       #(add-type-fields type-name type-fields %))
             (->> (add-implements type-name interface-types)))
         data))
     data type-extensions))
@@ -109,9 +118,9 @@
                       graphql/input-type-fields
                       graphql/interface-types]}]
       (->> {:analyzer/implements #{}
-            :analyzer/fields {}
-            :analyzer/type-name type-name}
-           (add-type-fields input-type-fields)
+            :analyzer/fields     {}
+            :analyzer/type-name  type-name}
+           (add-type-fields type-name input-type-fields)
            (assoc-in data [:analyzer/input-types type-name])))
     data input-type-definitions))
 
@@ -126,9 +135,9 @@
    - type extensions,
    - input type definitions."
   [schema]
-  (-> {:analyzer/types {}
+  (-> {:analyzer/types       {}
        :analyzer/input-types {}
-       :analyzer/interfaces {}}
+       :analyzer/interfaces  {}}
       (add-interfaces schema)
       (add-types schema)
       (extend-types schema)

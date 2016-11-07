@@ -1,6 +1,28 @@
 (ns alumbra.analyzer.spec
   (:require [clojure.spec :as s]))
 
+;; ## Names
+
+(s/def :analyzer/type-name
+  :graphql/type-name)
+
+(s/def :analyzer/containing-type-name
+  :graphql/type-name)
+
+(s/def :analyzer/argument-name
+  :graphql/argument-name)
+
+(s/def :analyzer/field-name
+  :graphql/field-name)
+
+(s/def :analyzer/directive-name
+  :graphql/directive-name)
+
+(s/def :analyzer/operation-type
+  :graphql/operation-type)
+
+;; ## Schema
+
 (s/def :analyzer/schema
   (s/keys :req [:analyzer/types
                 :analyzer/input-types
@@ -9,75 +31,96 @@
                 :analyzer/schema-root
                 :analyzer/scalars
                 :analyzer/unions
-                :analyzer/known-types
-                :analyzer/known-composite-types]))
+                :analyzer/type->kind]))
 
-(s/def :analyzer/known-types
-  (s/coll-of :graphql/type-name
-             :gen-max 5))
+;; ### Type/Kind Mapping
 
-(s/def :analyzer/known-composite-types
-  (s/coll-of :graphql/type-name
-             :gen-max 5))
+(s/def :analyzer/kind
+  #{:type :interface :input-type :union :directive :scalar :enum})
+
+(s/def :analyzer/type->kind
+  (s/map-of :analyzer/type-name :analyzer/kind))
+
+;; ### Structured Types
 
 (s/def :analyzer/types
-  (s/map-of :graphql/type-name :analyzer/type))
+  (s/map-of :analyzer/type-name :analyzer/type))
 
 (s/def :analyzer/input-types
   :analyzer/types)
 
-(s/def :analyzer/interfaces
-  (s/map-of :graphql/type-name :analyzer/interface))
-
 (s/def :analyzer/type
-  (s/keys :req [:analyzer/implements
-                :analyzer/type-name
+  (s/keys :req [:analyzer/type-name
+                :analyzer/implements
                 :analyzer/fields]))
 
-(s/def :analyzer/type-name
-  :graphql/type-name)
-
 (s/def :analyzer/implements
-  (s/coll-of :graphql/type-name
+  (s/coll-of :analyzer/type-name
              :gen-max 3))
 
 (s/def :analyzer/fields
-  (s/map-of :graphql/field-name :analyzer/field))
+  (s/map-of :analyzer/field-name :analyzer/field))
 
 (s/def :analyzer/field
-  (s/keys :req [:analyzer/type-name
+  (s/keys :req [:analyzer/field-name
+                :analyzer/containing-type-name
+                :analyzer/type-name
+                :analyzer/non-null?
                 :analyzer/arguments]))
 
 (s/def :analyzer/arguments
-  (s/map-of :graphql/argument-name
+  (s/map-of :analyzer/argument-name
             :analyzer/argument))
 
 (s/def :analyzer/argument
-  (s/keys :req [:analyzer/type-name]))
+  (s/keys :req [:analyzer/argument-name
+                :analyzer/non-null?
+                :analyzer/type-name]))
+
+(s/def :analyzer/non-null?
+  :graphql/non-null?)
+
+;; ### Interfaces
+
+(s/def :analyzer/interfaces
+  (s/map-of :analyzer/type-name :analyzer/interface))
 
 (s/def :analyzer/interface
-  (s/keys :req [:analyzer/implemented-by
+  (s/keys :req [:analyzer/type-name
+                :analyzer/implemented-by
                 :analyzer/fields]))
 
 (s/def :analyzer/implemented-by
-  (s/coll-of :graphql/type-name
+  (s/coll-of :analyzer/type-name
              :gen-max 2))
 
-(s/def :analyzer/scalars
-  (s/coll-of :graphql/type-name
-             :gen-max 1))
+;; ### Union Types
 
 (s/def :analyzer/unions
-  (s/map-of :graphql/type-name :analyzer/union-types))
+  (s/map-of :analyzer/type-name :analyzer/union))
+
+(s/def :analyzer/union
+  (s/keys :req [:analyzer/type-name
+                :analyzer/union-types]))
 
 (s/def :analyzer/union-types
-  (s/coll-of :graphql/type-name
+  (s/coll-of :analyzer/type-name
              :min-count 1
              :gen-max 3))
 
+;; ### Scalars
+
+(s/def :analyzer/scalars
+  (s/coll-of :analyzer/type-name
+             :gen-max 1))
+
+;; ### Directives
+
 (s/def :analyzer/directives
-  (s/map-of :graphql/directive-name :graphql/type-name))
+  (s/map-of :analyzer/directive-name :analyzer/type-name))
+
+;; ### Schema Root
 
 (s/def :analyzer/schema-root
-  (s/map-of :graphql/operation-type
-            :graphql/type-name))
+  (s/map-of :analyzer/operation-type
+            :analyzer/type-name))

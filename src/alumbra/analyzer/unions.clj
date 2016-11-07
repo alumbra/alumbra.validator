@@ -15,5 +15,10 @@
            :graphql/type-name])
         (reduce
           (fn [result [type-name union-type-name]]
-            (update result type-name (fnil conj #{}) union-type-name))
+            (update result
+                    type-name
+                    (fnil
+                      #(update % :analyzer/union-types conj union-type-name)
+                      {:analyzer/type-name   type-name
+                       :analyzer/union-types #{}})))
           {}))})
