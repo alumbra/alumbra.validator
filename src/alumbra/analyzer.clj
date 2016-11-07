@@ -6,6 +6,7 @@
              [schema-root :as schema-root]
              [types :as types]
              [unions :as unions]
+             [valid-fragment-spreads :as valid-fragment-spreads]
              spec]
             [clojure.spec :as s]
             [com.rpl.specter :refer :all]))
@@ -20,7 +21,8 @@
         (schema-root/analyze schema)
         (types/analyze schema)
         (unions/analyze schema))
-      (kinds/aggregate)))
+      (kinds/aggregate)
+      (valid-fragment-spreads/aggregate)))
 
 (s/fdef analyze
         :args (s/cat :schema :graphql/schema)

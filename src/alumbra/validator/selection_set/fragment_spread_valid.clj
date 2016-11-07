@@ -41,46 +41,29 @@
          :validator/scope-type
          (:graphql/type-name type-condition)))
 
-(defn collect-valid-spread-types
-  [{:keys [analyzer/unions]}
-   {:keys [analyzer/type-name
-           analyzer/implements
-           analyzer/implemented-by
-           analyzer/union-types]}]
-  (let [allowed-types (set (concat implements implemented-by union-types))
-        allowed-types (cond-> allowed-types type-name (conj type-name))
-        allowed-union-types
-        (keep
-          (fn [[union-type-name {:keys [analyzer/union-types]}]]
-            (when-not (empty? (set/intersection union-types allowed-types))
-              union-type-name))
-          unions)]
-    (into allowed-types allowed-union-types)))
-
 (defn- fragment-spread-type
   [spread]
   (-> spread :graphql/type-condition :graphql/type-name))
 
 (defn- valid-inline-spread-type?
-  [schema type]
-  (let [spread-type-valid? (set (collect-valid-spread-types schema type))]
-    (fn [value]
-      (let [t (fragment-spread-type value)]
-        (spread-type-valid? t)))))
+  [{:keys [analyzer/valid-fragment-spreads]}]
+  (fn [value]
+    (contains?
+      valid-fragment-spreads
+      (fragment-spread-type value))))
 
 (defn- valid-named-spread-type?
-  [schema type]
-  (let [spread-type-valid? (set (collect-valid-spread-types schema type))]
-    (fn [{:keys [validator/fragment-types]}
-         {:keys [graphql/fragment-name]}]
-      (let [t (get fragment-types fragment-name)]
-        (or (not t)
-            (spread-type-valid? t))))))
+  [{:keys [analyzer/valid-fragment-spreads]}]
+  (fn [{:keys [validator/fragment-types]}
+       {:keys [graphql/fragment-name]}]
+    (let [t (get fragment-types fragment-name)]
+      (or (not t)
+          (contains? valid-fragment-spreads t)))))
 
 ;; ## Invariants
 
 (defn inline-spread-invariant
-  [schema type selection-set-valid?]
+  [type selection-set-valid?]
   (-> (invariant/on
         [:graphql/selection-set ALL inline-spread-selection?])
       (invariant/fmap add-scope-type)
@@ -88,22 +71,22 @@
         (invariant/and
           (invariant/value
             :validator/fragment-spread-type-in-scope
-            (valid-inline-spread-type? schema type))
+            (valid-inline-spread-type? type))
           selection-set-valid?))))
 
 (defn named-spread-invariant
-  [schema type selection-set-valid?]
+  [type selection-set-valid?]
   (-> (invariant/on
         [:graphql/selection-set ALL named-spread-selection?])
       (invariant/each
         (invariant/and
           (invariant/property
             :validator/fragment-spread-type-in-scope
-            (valid-named-spread-type? schema type))
+            (valid-named-spread-type? type))
           selection-set-valid?))))
 
 (defn invariant
   [schema type selection-set-valid?]
   (invariant/and
-    (inline-spread-invariant schema type selection-set-valid?)
-    (named-spread-invariant schema type selection-set-valid?)))
+    (inline-spread-invariant type selection-set-valid?)
+    (named-spread-invariant type selection-set-valid?)))

@@ -41,17 +41,29 @@
 (s/def :analyzer/type->kind
   (s/map-of :analyzer/type-name :analyzer/kind))
 
+;; ### Fragment Spreads
+
+(s/def :analyzer/valid-fragment-spreads
+  (s/coll-of :analyzer/type-name
+             :gen-max 3))
+
 ;; ### Structured Types
 
 (s/def :analyzer/types
   (s/map-of :analyzer/type-name :analyzer/type))
 
 (s/def :analyzer/input-types
-  :analyzer/types)
+  (s/map-of :analyzer/type-name :analyzer/input-type))
+
+(s/def :analyzer/input-type
+  (s/keys :req [:analyzer/type-name
+                :analyzer/implements
+                :analyzer/fields]))
 
 (s/def :analyzer/type
   (s/keys :req [:analyzer/type-name
                 :analyzer/implements
+                :analyzer/valid-fragment-spreads
                 :analyzer/fields]))
 
 (s/def :analyzer/implements
@@ -88,6 +100,7 @@
 (s/def :analyzer/interface
   (s/keys :req [:analyzer/type-name
                 :analyzer/implemented-by
+                :analyzer/valid-fragment-spreads
                 :analyzer/fields]))
 
 (s/def :analyzer/implemented-by
@@ -101,6 +114,7 @@
 
 (s/def :analyzer/union
   (s/keys :req [:analyzer/type-name
+                :analyzer/valid-fragment-spreads
                 :analyzer/union-types]))
 
 (s/def :analyzer/union-types
