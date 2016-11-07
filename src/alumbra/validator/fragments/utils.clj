@@ -2,6 +2,35 @@
   (:require [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
+;; ## Specter
+
+(def dfs
+  "DFS specter navigator."
+  (recursive-path
+    [k]
+    p
+    (cond-path
+      map?  (multi-path (must k) [MAP-VALS p])
+      coll? [ALL p]
+      STAY)))
+
+(defn all-fragments-in
+  [base-key]
+  [base-key
+   ALL
+   :graphql/selection-set
+   ALL
+   (dfs :graphql/fragment-name)])
+
+(def all-fragment-names
+  [ALL (dfs :graphql/fragment-name)])
+
+(def spread?
+  "A specter path finding all fragment spreads."
+  (walker :graphql/type-condition))
+
+;; ## Invariant
+
 (defn type-name
   "Extract the type name from a fragment spread."
   [fragment]
@@ -15,10 +44,6 @@
     (fn [_ {:keys [graphql/fragment-name] :as fragment}]
       {:analyzer/fragment-name fragment-name
        :analyzer/type-name     (type-name fragment)})))
-
-(def spread?
-  "A specter path finding all fragment spreads."
-  (walker :graphql/type-condition))
 
 (defn fragment-spread-invariant
   "An invariant applied to each fragment spread within

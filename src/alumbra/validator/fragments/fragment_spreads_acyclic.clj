@@ -1,7 +1,7 @@
 (ns alumbra.validator.fragments.fragment-spreads-acyclic
-  (:require [invariant.core :as invariant]
-            [com.rpl.specter :refer :all]
-            [alumbra.validator.utils :refer [dfs]]))
+  (:require [alumbra.validator.fragments.utils :as u]
+            [invariant.core :as invariant]
+            [com.rpl.specter :refer :all]))
 
 ;; Formal Specification (5.4.2.2)
 ;; ---
@@ -24,7 +24,7 @@
                      graphql/selection-set]}
              fragments]
          (->> selection-set
-              (traverse [ALL (dfs :graphql/fragment-name)])
+              (traverse u/all-fragment-names)
               (into #{})
               (vector fragment-name)))
        (into {})))

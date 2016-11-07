@@ -62,7 +62,7 @@
     conj {}))
 
 (defn invariant
-  [{:keys [analyzer/schema-root] :as schema}]
+  [schema]
   (let [inv (selection-set-valid? schema)]
     (-> (invariant/on-current-value)
         (add-known-fragments)
