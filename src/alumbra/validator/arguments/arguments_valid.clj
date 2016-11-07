@@ -3,6 +3,14 @@
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
+;; Formal Specification (5.3.1)
+;; ---
+;; - For each `argument` in the document
+;; - Let `argumentName` be the Name of `argument`.
+;; - Let `argumentDefinition` be the argument definition provided by the parent
+;;   field or definition named `argumentName`.
+;; - `argumentDefinition` must exist.
+
 (defn- field-arguments-invariant
   [{:keys [analyzer/arguments]}]
   (let [valid-argument-name? (set (keys arguments))]
