@@ -5,6 +5,7 @@
              [fragment-name-uniqueness :as fragment-name-uniqueness]
              [fragment-spreads-acyclic :as fragment-spreads-acyclic]
              [fragment-spread-target-existence :as fragment-spread-target-existence]
+             [fragment-spread-type-in-scope :as fragment-spread-type-in-scope]
              [fragment-spread-type-existence :as fragment-spread-type-existence]]
             [invariant.core :as invariant]))
 
@@ -17,5 +18,6 @@
     fragment-name-uniqueness/invariant
     fragment-spreads-acyclic/invariant
     (fragment-on-composite-type/invariant schema)
+    (fragment-spread-type-in-scope/invariant schema)
     (fragment-spread-target-existence/invariant schema)
     (fragment-spread-type-existence/invariant schema)))

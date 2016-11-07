@@ -1,5 +1,6 @@
 (ns alumbra.validator.arguments.arguments-valid
-  (:require [invariant.core :as invariant]
+  (:require [alumbra.validator.selection-set :as selection-set]
+            [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
 (defn- field-arguments-invariant
@@ -14,7 +15,7 @@
                 (fn [_ {:keys [graphql/argument-name]}]
                   {:analyzer/argument-name argument-name})))))))
 
-(defn invariant
+(defn- argument-invariant
   [{:keys [analyzer/fields]}]
   (let [field->invariant
         (->> (for [[field-name type] fields]
@@ -23,3 +24,8 @@
     (invariant/bind
       (fn [_ {:keys [graphql/field-name]}]
         (field->invariant field-name)))))
+
+(defn invariant
+  [schema]
+  (->> {:fields #(argument-invariant %2)}
+       (selection-set/invariant schema)))

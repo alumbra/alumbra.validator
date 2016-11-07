@@ -1,9 +1,9 @@
 (ns alumbra.validator
   (:require [alumbra.validator
              [arguments :as arguments]
+             [fields :as fields]
              [fragments :as fragments]
-             [operations :as operations]
-             [selection-set :as selection-set]]
+             [operations :as operations]]
             [alumbra.analyzer :as a]
             [invariant.core :as invariant]))
 
@@ -11,10 +11,10 @@
   "Generate an AST invariant based on the given schema."
   [analyzed-schema]
   (invariant/and
+    (arguments/invariant analyzed-schema)
     (fragments/invariant analyzed-schema)
-    (operations/invariant analyzed-schema)
-    (selection-set/invariant analyzed-schema)
-    (arguments/invariant analyzed-schema)))
+    (fields/invariant analyzed-schema)
+    (operations/invariant analyzed-schema)))
 
 (defn validator
   "Generate a function that will valid a GraphQL AST conforming to the

@@ -1,5 +1,6 @@
 (ns alumbra.validator.fragments.fragment-spread-target-existence
-  (:require [invariant.core :as invariant]
+  (:require [alumbra.validator.fragments.utils :as u]
+            [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
 ;; Formal Specification (5.4.2.1)
@@ -21,8 +22,9 @@
         :validator/known-fragments
         [:graphql/fragments ALL (must :graphql/fragment-name)])
       (invariant/each
-        (invariant/property
-          :validator/fragment-spread-target-existence
-          (fn [{:keys [validator/known-fragments]}
-               {:keys [graphql/fragment-name]}]
-            (contains? known-fragments fragment-name))))))
+        (u/with-fragment-context
+          (invariant/property
+            :validator/fragment-spread-target-existence
+            (fn [{:keys [validator/known-fragments]}
+                 {:keys [graphql/fragment-name]}]
+              (contains? known-fragments fragment-name)))))))
