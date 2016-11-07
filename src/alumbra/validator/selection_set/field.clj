@@ -8,14 +8,14 @@
     data))
 
 (defn- with-field-context
-  [{:keys [analyzer/containing-type-name
-           analyzer/type-name]} invariant]
+  [{:keys [analyzer/type-name
+           analyzer/fields]} invariant]
   (invariant/with-error-context
     invariant
     (fn [_ {:keys [graphql/field-name]}]
       {:analyzer/field-name           field-name
-       :analyzer/containing-type-name containing-type-name
-       :analyzer/type-name            type-name})))
+       :analyzer/containing-type-name type-name
+       :analyzer/valid-field-names    (into #{"__typename"} (keys fields))})))
 
 (defn make-invariant
   [schema type invariant-fn self]
