@@ -10,8 +10,8 @@
     (invariant-state [_ invariant]
       invariant)
     (for-fields [_ schema]
-      [arguments-valid/invariant-fn
-       argument-uniqueness/invariant-fn])
+      [arguments-valid/field-invariant
+       argument-uniqueness/field-invariant])
     (for-operations [_ schema])
     (for-fragments [_ schema])
     (for-fragment-spreads [_ schema])

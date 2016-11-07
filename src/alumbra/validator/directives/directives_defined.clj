@@ -14,7 +14,7 @@
   (comp (set (keys directives))
         :graphql/directive-name))
 
-(defn invariant-fn
+(defn invariant
   [schema _]
   (-> (invariant/on [:graphql/directives ALL])
       (invariant/each

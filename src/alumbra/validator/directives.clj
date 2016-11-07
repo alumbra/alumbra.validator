@@ -6,8 +6,8 @@
             [invariant.core :as invariant]))
 
 (def ^:private selection-set-invariants
-  [directive-uniqueness/invariant-fn
-   directives-defined/invariant-fn])
+  [directive-uniqueness/invariant
+   directives-defined/invariant])
 
 (def builder
   (reify b/ValidatorBuilder

@@ -10,7 +10,7 @@
 ;;   which contains `argument`.
 ;; - `arguments` must be the set containing only argument.
 
-(def invariant-fn
+(def field-invariant
   (constantly
     (let [inv (-> (invariant/on [:graphql/arguments ALL])
                   (invariant/unique :validator/argument-uniqueness

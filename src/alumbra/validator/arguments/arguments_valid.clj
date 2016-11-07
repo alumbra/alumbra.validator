@@ -78,8 +78,8 @@
                       (fn [_ {:keys [graphql/argument-name]}]
                         {:analyzer/argument-name argument-name})))))))))
 
-(defn- argument-invariant
-  [{:keys [analyzer/fields]}]
+(defn field-invariant
+  [_ {:keys [analyzer/fields]}]
   (let [field->invariant
         (->> (for [[field-name type] fields]
                [field-name (field-arguments-invariant type)])
@@ -87,6 +87,3 @@
     (invariant/bind
       (fn [_ {:keys [graphql/field-name]}]
         (field->invariant field-name)))))
-
-(def invariant-fn
-  #(argument-invariant %2))

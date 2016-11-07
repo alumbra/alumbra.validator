@@ -12,7 +12,7 @@
 ;; Let namedDirectives be the set of all Directives named directiveName in directives.
 ;; namedDirectives must be a set of one.
 
-(def invariant-fn
+(def invariant
   (constantly
     (-> (invariant/on [:graphql/directives ALL])
         (invariant/unique

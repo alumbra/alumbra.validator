@@ -10,8 +10,8 @@
     (invariant-state [_ invariant]
       invariant)
     (for-fields [_ schema]
-      [field-selection-in-scope/invariant-fn
-       leaf-field-selections/invariant-fn])
+      [field-selection-in-scope/field-invariant
+       leaf-field-selections/field-invariant])
     (for-fragment-spreads [_ _])
     (for-inline-spreads [_ _])
     (for-operations [_ _])

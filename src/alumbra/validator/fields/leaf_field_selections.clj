@@ -21,12 +21,8 @@
             (seq selection-set)
             (empty? selection-set))))))
 
-(defn- field-invariant
-  [schema]
+(defn field-invariant
+  [schema _]
   (invariant/value
     :validator/leaf-field-selection
     (valid-subselection? schema)))
-
-(defn invariant-fn
-  [schema _]
-  (field-invariant schema))
