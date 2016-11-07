@@ -7,7 +7,7 @@
   [fragment]
   (-> fragment :graphql/type-condition :graphql/type-name))
 
-(defn- with-fragment-context
+(defn with-fragment-context
   "Add fragment information to invariant error context."
   [invariant]
   (invariant/with-error-context
