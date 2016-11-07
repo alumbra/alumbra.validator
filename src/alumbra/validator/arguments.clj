@@ -4,10 +4,8 @@
              [arguments-valid :as arguments-valid]]
             [invariant.core :as invariant]))
 
-(defn invariant
-  "Generate invariant to be applied to all argument-related subtrees in a
-   GraphQL query document."
-  [schema]
-  (invariant/and
-    (arguments-valid/invariant schema)
-    argument-uniqueness/invariant))
+(def selection-set-invariants
+  "Invariants that should be part of the recursive traversal of the selection
+   set."
+  [arguments-valid/selection-set-invariant
+   argument-uniqueness/selection-set-invariant])

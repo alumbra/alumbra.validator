@@ -4,7 +4,8 @@
              [directives :as directives]
              [fields :as fields]
              [fragments :as fragments]
-             [operations :as operations]]
+             [operations :as operations]
+             [selection-set :as selection-set]]
             [alumbra.analyzer :as a]
             [invariant.core :as invariant]))
 
@@ -12,10 +13,12 @@
   "Generate an AST invariant based on the given schema."
   [analyzed-schema]
   (invariant/and
-    (arguments/invariant analyzed-schema)
+    (->> (concat
+           arguments/selection-set-invariants
+           fields/selection-set-invariants)
+         (selection-set/merged-invariant analyzed-schema))
     (directives/invariant analyzed-schema)
     (fragments/invariant analyzed-schema)
-    (fields/invariant analyzed-schema)
     (operations/invariant analyzed-schema)))
 
 (defn validator

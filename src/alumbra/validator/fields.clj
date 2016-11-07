@@ -4,8 +4,6 @@
              [field-selection-in-scope :as field-selection-in-scope]]
             [invariant.core :as invariant]))
 
-(defn invariant
-  [schema]
-  (invariant/and
-    (field-selection-in-scope/invariant schema)
-    (leaf-field-selections/invariant schema)))
+(def selection-set-invariants
+  [field-selection-in-scope/selection-set-invariant
+   leaf-field-selections/selection-set-invariant])

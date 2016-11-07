@@ -27,8 +27,5 @@
     :validator/leaf-field-selection
     (valid-subselection? schema)))
 
-(defn invariant
-  [schema]
-  (->> {:fields
-        (fn [schema _] (field-invariant schema))}
-       (selection-set/invariant schema)))
+(def selection-set-invariant
+  {:fields (fn [schema _] (field-invariant schema))})

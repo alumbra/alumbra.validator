@@ -19,7 +19,5 @@
     :validator/field-selection-in-scope
     (valid-field-name? field)))
 
-(defn invariant
-  [schema]
-  (->> {:fields #(field-invariant %2)}
-       (selection-set/invariant schema)))
+(def selection-set-invariant
+  {:fields #(field-invariant %2)})
