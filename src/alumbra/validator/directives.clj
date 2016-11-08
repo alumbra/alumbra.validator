@@ -5,19 +5,9 @@
             [alumbra.validator.builder :as b]
             [invariant.core :as invariant]))
 
-(def ^:private selection-set-invariants
-  [directive-uniqueness/invariant
-   directives-defined/invariant])
-
-(def builder
-  (reify b/ValidatorBuilder
-    (invariant-state [_ invariant]
-      invariant)
-    (for-fields [_ schema]
-      selection-set-invariants)
-    (for-fragment-spreads [_ schema]
-      selection-set-invariants)
-    (for-inline-spreads [_ schema]
-      selection-set-invariants)
-    (for-operations [_ _])
-    (for-fragments [_ _])))
+(let [invs [directive-uniqueness/invariant
+            directives-defined/invariant]]
+  (def builder
+    {:fields         invs
+     :inline-spreads invs
+     :named-spreads  invs}))

@@ -10,13 +10,14 @@
 ;;   - `anonymous` must be empty.
 
 (def invariant
-  (-> (invariant/on-current-value)
-      (invariant/count-as :operations [ALL])
-      (invariant/count-as
-        :anonymous-operations
-        [ALL #(not (contains? % :graphql/operation-name))])
-      (invariant/is?
-        (invariant/state :validator/lone-anonymous-operation
-                         (fn [{:keys [operations anonymous-operations]}]
-                           (or (<= operations 1)
-                               (zero? anonymous-operations)))))))
+  (constantly
+    (-> (invariant/on-current-value)
+        (invariant/count-as :operations [ALL])
+        (invariant/count-as
+          :anonymous-operations
+          [ALL #(not (contains? % :graphql/operation-name))])
+        (invariant/is?
+          (invariant/state :validator/lone-anonymous-operation
+                           (fn [{:keys [operations anonymous-operations]}]
+                             (or (<= operations 1)
+                                 (zero? anonymous-operations))))))))

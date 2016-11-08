@@ -8,6 +8,6 @@
          (:graphql/type-name type-condition)))
 
 (defn make-invariant
-  [schema type invariant-fn self]
+  [type invariant-fn self]
   (when invariant-fn
-    (invariant-fn schema type)))
+    (invariant-fn type)))

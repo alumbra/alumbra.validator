@@ -78,7 +78,7 @@
                       (fn [_ {:keys [graphql/argument-name]}]
                         {:analyzer/argument-name argument-name})))))))))
 
-(defn field-invariant
+(defn invariant
   [_ {:keys [analyzer/fields]}]
   (let [field->invariant
         (->> (for [[field-name type] fields]

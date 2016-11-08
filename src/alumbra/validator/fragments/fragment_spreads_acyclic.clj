@@ -33,7 +33,8 @@
   (into {} (map (juxt :graphql/fragment-name identity) fragments)))
 
 (def invariant
-  (invariant/acyclic
-    :validator/fragment-spreads-acyclic
-    #(collect-edges %2)
-    #(describe-fragments %2)))
+  (constantly
+    (invariant/acyclic
+      :validator/fragment-spreads-acyclic
+      #(collect-edges %2)
+      #(describe-fragments %2))))

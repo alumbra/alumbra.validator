@@ -18,12 +18,12 @@
        :analyzer/valid-field-names    (into #{"__typename"} (keys fields))})))
 
 (defn make-invariant
-  [schema type invariant-fn self]
+  [type invariant-fn self]
   (-> (invariant/on-current-value)
       (invariant/fmap #(add-scope-type type %))
       (invariant/is?
         (invariant/and
           (when invariant-fn
             (with-field-context type
-              (invariant-fn schema type)))
+              (invariant-fn type)))
           self))))

@@ -9,10 +9,10 @@
 ;; ## Recursive Selection Set Traversal
 
 (defn- make-selection-set-invariant
-  [schema type {:keys [fields inline-spreads named-spreads]} self]
-  (let [field-invariant         (field/make-invariant schema type fields self)
-        named-spread-invariant  (named-spread/make-invariant schema type named-spreads self)
-        inline-spread-invariant (inline-spread/make-invariant schema type inline-spreads self)]
+  [type {:keys [fields inline-spreads named-spreads]} self]
+  (let [field-invariant         (field/make-invariant type fields self)
+        named-spread-invariant  (named-spread/make-invariant type named-spreads self)
+        inline-spread-invariant (inline-spread/make-invariant type inline-spreads self)]
     (-> (invariant/on [:graphql/selection-set ALL])
         (invariant/each
           (invariant/bind
@@ -27,7 +27,7 @@
   [schema k child-invariants self]
   (for [[type-name type] (get schema k)]
     [type-name
-     (make-selection-set-invariant schema type child-invariants self)]))
+     (make-selection-set-invariant type child-invariants self)]))
 
 (defn- selection-set-valid?
   [schema child-invariants]
@@ -66,7 +66,7 @@
    - `:named-spreads`
 
    "
-  [schema child-invariants]
+  [child-invariants schema]
   (let [inv (selection-set-valid? schema child-invariants)]
     (invariant/and
       (-> (invariant/on [:graphql/operations ALL])

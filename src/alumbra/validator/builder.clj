@@ -3,68 +3,98 @@
             [invariant.potemkin :refer [defprotocol+]]
             [invariant.core :as invariant]))
 
-;; ## Protocol
+;; ## Builder Maps
+;;
+;; Validator builders are represented as maps of invariant builder fns.
+;;
+;; The following functions should only take the schema as parameter:
+;;
+;; - `:operations`: to be run on [:graphql/operations]
+;; - `:fragments`: to be run on [:graphql/fragments]
+;;
+;; The following functions should take the schema and the current scope's
+;; `:analyzer/type` map:
+;;
+;; - `:fields`: to be run on [* :graphql/field]
+;; - `:inline-spreads`: to be run on [* :graphql/inline-spread]
+;; - `:named-spreads`: to be run on [* :graphql/fragment-spread]
+;;
+;; Additionally, the following keys are allowed:
+;;
+;; - `:state`: a function attaching state to the invariant.
 
-(defprotocol+ ValidatorBuilder
-  "Protocol for validator builders, producing invariants based on the
-   analyzed schema. All `for-*` functions should produce seqs
-   of functions."
-  (invariant-state [_ invariant]
-    "Add validator-specific state to the given invariant (generated from
-     the whole `:graphql/document`).")
-  (for-operations [_ schema]
-    "Generate invariants to be run on the `:graphql/operations` entry.")
-  (for-fragments [_ schema]
-    "Generate invariants to be run on the `:graphql/fragments` entry.")
-  (for-fields [_ schema]
-    "Generate invariants to be run on `:graphql/field` entries.")
-  (for-fragment-spreads [_ schema]
-    "Generate invariants to be run on `:graphql/fragment-spread entries.")
-  (for-inline-spreads [_ schema]
-    "Generate invariants to be run on `:graphql/inline-fragment` entries."))
-
-;; ## Build
+;; ## Builder Helpers
 
 (defn- mapcat-fns
-  [f schema builders]
-  (mapcat (memoize #(f % schema)) builders))
-
-(defn- merge-invariant-fns
-  [invariant-fns]
-  (when (seq invariant-fns)
-    #(->> invariant-fns
-          (map (fn [f] (f %1 %2)))
-          (apply invariant/and))))
+  "Collect all functions at the given key in the given builders."
+  [k builders]
+  (mapcat #(get % k) builders))
 
 (defn- merge-invariants
-  [invariants]
-  (when (seq invariants)
-    (apply invariant/and invariants)))
+  [invariant-fns schema]
+  (when (seq invariant-fns)
+    (->> invariant-fns
+         (map (fn [f] (f schema)))
+         (apply invariant/and))))
 
-(defn- invariant-with-state
+(defn- merge-scoped-invariant-fns
+  [invariant-fns schema]
+  (when (seq invariant-fns)
+    (fn [type]
+      (->> invariant-fns
+           (map (fn [f] (f schema type)))
+           (apply invariant/and)))))
+
+(defn make-invariant
+  [schema k builders]
+  (-> (mapcat-fns k builders)
+      (merge-invariants schema)))
+
+(defn- make-scoped-invariant-fn
+  [schema k builders]
+  (-> (mapcat-fns k builders)
+      (merge-scoped-invariant-fns schema)))
+
+;; ## Invariant Builders
+
+(defn- initialize-invariant
   [builders]
   (reduce
-    (fn [invariant builder]
-      (invariant-state builder invariant))
+    (fn [invariant {:keys [state]}]
+      (if state
+        (state invariant)
+        invariant))
     (invariant/on-current-value)
     builders))
 
+(defn- make-selection-set-invariant
+  [schema builders]
+  (let [mk #(make-scoped-invariant-fn schema % builders)]
+    (selection-set/invariant
+      {:fields         (mk :fields)
+       :inline-spreads (mk :inline-spreads)
+       :named-spreads  (mk :named-spreads)}
+      schema)))
+
+(defn- make-fragment-invariant
+  [schema builders]
+  (let [inv (make-invariant schema :fragments builders)]
+    (-> (invariant/on [:graphql/fragments])
+        (invariant/is? inv))))
+
+(defn- make-operation-invariant
+  [schema builders]
+  (let [inv (make-invariant schema :operations builders)]
+    (-> (invariant/on [:graphql/operations])
+        (invariant/is? inv))))
+
+;; ## Build Function
+
 (defn build
   [builders schema]
-  (let [field-fns           (mapcat-fns for-fields schema builders)
-        fragment-spread-fns (mapcat-fns for-fragment-spreads schema builders)
-        inline-spread-fns   (mapcat-fns for-inline-spreads schema builders)
-        operation-invs      (mapcat-fns for-operations schema builders)
-        fragment-invs       (mapcat-fns for-fragments schema builders)]
-    (-> (invariant-with-state builders)
-        (invariant/is?
-          (invariant/and
-            (selection-set/invariant
-              schema
-              {:fields         (merge-invariant-fns field-fns)
-               :named-spreads  (merge-invariant-fns fragment-spread-fns)
-               :inline-spreads (merge-invariant-fns inline-spread-fns)})
-            (-> (invariant/on [:graphql/operations])
-                (invariant/is? (merge-invariants operation-invs)))
-            (-> (invariant/on [:graphql/fragments])
-                (invariant/is? (merge-invariants fragment-invs))))))))
+  (-> (initialize-invariant builders)
+      (invariant/is?
+        (invariant/and
+          (make-selection-set-invariant schema builders)
+          (make-fragment-invariant schema builders)
+          (make-operation-invariant schema builders)))))

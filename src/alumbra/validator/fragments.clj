@@ -11,23 +11,23 @@
             [invariant.core :as invariant]))
 
 (def builder
-  (reify b/ValidatorBuilder
-    (invariant-state [_ invariant]
-      (-> invariant
-          (fragments-must-be-used/invariant-state)
-          (fragment-spread-target-existence/invariant-state)))
-    (for-fragments [_ schema]
-      [fragment-name-uniqueness/invariant
-       fragment-spreads-acyclic/invariant
-       fragments-must-be-used/invariant
-       fragment-spread-target-existence/invariant
-       (fragment-on-composite-type/invariant schema)
-       (fragment-spread-type-existence/fragment-invariant schema)])
-    (for-operations [_ _]
-      [fragment-spread-target-existence/invariant])
-    (for-fields [_ schema])
-    (for-fragment-spreads [_ schema]
-      [fragment-spread-type-in-scope/named-spread-invariant])
-    (for-inline-spreads [_ schema]
-      [fragment-spread-type-existence/inline-spread-invariant
-       fragment-spread-type-in-scope/inline-spread-invariant])))
+  {:inline-spreads
+   [fragment-spread-type-existence/inline-spread-invariant
+    fragment-spread-type-in-scope/inline-spread-invariant]
+   :named-spreads
+   [fragment-spread-type-in-scope/named-spread-invariant]
+   :operations
+   [fragment-spread-target-existence/invariant]
+   :fragments
+   [fragment-name-uniqueness/invariant
+    fragment-spreads-acyclic/invariant
+    fragments-must-be-used/invariant
+    fragment-spread-target-existence/invariant
+    fragment-on-composite-type/invariant
+    fragment-spread-type-existence/invariant]
+   :state
+   (fn [invariant]
+     (-> invariant
+         (fragments-must-be-used/state)
+         (fragment-spread-type-in-scope/state)
+         (fragment-spread-target-existence/state)))})

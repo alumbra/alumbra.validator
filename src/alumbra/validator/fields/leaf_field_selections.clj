@@ -21,7 +21,7 @@
             (seq selection-set)
             (empty? selection-set))))))
 
-(defn field-invariant
+(defn invariant
   [schema _]
   (invariant/value
     :validator/leaf-field-selection

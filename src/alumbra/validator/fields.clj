@@ -6,13 +6,5 @@
             [invariant.core :as invariant]))
 
 (def builder
-  (reify b/ValidatorBuilder
-    (invariant-state [_ invariant]
-      invariant)
-    (for-fields [_ schema]
-      [field-selection-in-scope/field-invariant
-       leaf-field-selections/field-invariant])
-    (for-fragment-spreads [_ _])
-    (for-inline-spreads [_ _])
-    (for-operations [_ _])
-    (for-fragments [_ _])))
+  {:fields [field-selection-in-scope/invariant
+            leaf-field-selections/invariant]})

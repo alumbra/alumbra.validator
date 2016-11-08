@@ -33,7 +33,7 @@
 
 ;; ## Invariant
 
-(defn invariant-state
+(defn state
   [invariant]
   (invariant/as
     invariant

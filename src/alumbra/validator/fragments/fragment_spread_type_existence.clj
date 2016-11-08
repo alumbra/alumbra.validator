@@ -11,15 +11,19 @@
 
 ;; ## Helpers
 
-(defn inline-spread-invariant
-  [{:keys [analyzer/type->kind]} _]
+(defn- make-invariant
+  [{:keys [analyzer/type->kind]}]
   (u/with-fragment-context
     (invariant/value
       :validator/fragment-spread-type-existence
       #(contains? type->kind (u/type-name %)))))
 
-(defn fragment-invariant
+(defn inline-spread-invariant
+  [schema _]
+  (make-invariant schema))
+
+(defn invariant
   [schema]
   (-> (invariant/on [ALL])
       (invariant/each
-        (inline-spread-invariant schema nil))))
+        (make-invariant schema))))

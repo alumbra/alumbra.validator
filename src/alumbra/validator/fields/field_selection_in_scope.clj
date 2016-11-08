@@ -13,7 +13,7 @@
   (comp (into #{"__typename"} (keys fields))
         :graphql/field-name))
 
-(defn field-invariant
+(defn invariant
   [_ field]
   (invariant/value
     :validator/field-selection-in-scope

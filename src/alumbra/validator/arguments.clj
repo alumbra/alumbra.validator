@@ -6,13 +6,5 @@
             [invariant.core :as invariant]))
 
 (def builder
-  (reify b/ValidatorBuilder
-    (invariant-state [_ invariant]
-      invariant)
-    (for-fields [_ schema]
-      [arguments-valid/field-invariant
-       argument-uniqueness/field-invariant])
-    (for-operations [_ schema])
-    (for-fragments [_ schema])
-    (for-fragment-spreads [_ schema])
-    (for-inline-spreads [_ schema])))
+  {:fields [arguments-valid/invariant
+            argument-uniqueness/invariant]})

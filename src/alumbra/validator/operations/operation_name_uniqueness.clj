@@ -10,6 +10,7 @@
 ;;   - `operations` must be a set of one.
 
 (def invariant
-  (-> (invariant/on [ALL #(contains? % :graphql/operation-name)])
-      (invariant/unique :validator/operation-name-uniqueness
-                        {:unique-by :graphql/operation-name})))
+  (constantly
+    (-> (invariant/on [ALL #(contains? % :graphql/operation-name)])
+        (invariant/unique :validator/operation-name-uniqueness
+                          {:unique-by :graphql/operation-name}))))

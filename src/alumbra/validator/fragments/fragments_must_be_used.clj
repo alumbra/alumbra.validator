@@ -8,7 +8,7 @@
 ;; - For each `fragment` defined in the document.
 ;; - `fragment` must be the target of at least one spread in the document.
 
-(defn invariant-state
+(defn state
   [invariant]
   (-> invariant
       (invariant/collect-as
@@ -18,11 +18,12 @@
           (u/all-fragment-names-in :graphql/fragments)))))
 
 (def invariant
-  (-> (invariant/on [ALL])
+  (constantly
+    (-> (invariant/on [ALL])
       (invariant/each
         (u/with-fragment-context
           (invariant/property
             :validator/fragment-must-be-used
             (fn [{:keys [::used-fragments]}
                  {:keys [graphql/fragment-name]}]
-              (contains? used-fragments fragment-name)))))))
+              (contains? used-fragments fragment-name))))))))
