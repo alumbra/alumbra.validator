@@ -6,7 +6,8 @@
              [fields :as fields]
              [fragments :as fragments]
              [operations :as operations]
-             [selection-set :as selection-set]]
+             [selection-set :as selection-set]
+             [variables :as variables]]
             [alumbra.parser :as ql]
             [alumbra.analyzer :as a]
             [invariant.core :as invariant]))
@@ -19,7 +20,8 @@
      directives/builder
      fields/builder
      fragments/builder
-     operations/builder]
+     operations/builder
+     variables/builder]
     schema))
 
 (defn validator
