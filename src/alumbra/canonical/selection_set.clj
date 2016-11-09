@@ -18,8 +18,11 @@
 
 (defn- field-type-of
   [{:keys [schema scope-type]} {:keys [graphql/field-name]}]
-  (let [type (or (get-in schema [:analyzer/types scope-type])
-                 (get-in schema [:analyzer/interfaces scope-type]))]
+  (let [kind (get-in schema [:analyzer/type->kind scope-type])
+        type (case kind
+               :type      (get-in schema [:analyzer/types scope-type])
+               :interface (get-in schema [:analyzer/interfaces scope-type])
+               :union     (get-in schema [:analyzer/unions scope-type]))]
     (get-in type [:analyzer/fields field-name])))
 
 (defn- generate-nested-selection
