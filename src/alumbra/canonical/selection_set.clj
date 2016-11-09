@@ -21,31 +21,62 @@
                  (get-in schema [:analyzer/interfaces scope-type]))]
     (get-in type [:analyzer/fields field-name])))
 
+(defn- generate-nested-selection
+  [{:keys [analyzer/type-description
+           analyzer/type-name
+           analyzer/non-null?]}
+   selection]
+  (if type-name
+    {:graphql/canonical-field-type :object
+     :graphql/non-null?            non-null?
+     :graphql/canonical-selection  selection}
+    {:graphql/canonical-field-type :list
+     :graphql/non-null?            non-null?
+     :graphql/canonical-field
+     (generate-nested-selection type-description selection)}))
+
+(defn- generate-nested-leaf
+  [{:keys [analyzer/type-name
+           analyzer/type-description
+           analyzer/non-null?]}]
+  (if type-description
+    {:graphql/canonical-field-type :list
+     :graphql/non-null?            non-null?
+     :graphql/canonical-field
+     (generate-nested-leaf type-description)}
+    {:graphql/canonical-field-type :leaf
+     :graphql/non-null?            non-null?}))
+
 ;; ## Field Resolution
 
-(defn- data-for-field
-  [_ {:keys [analyzer/non-null?]} field]
-  (-> field
-      (select-keys [:graphql/field-name])
-      (assoc :graphql/canonical-field-type :leaf
-             :graphql/non-null? non-null?)))
+(defn- leaf?
+  [{:keys [graphql/selection-set]}]
+  (not selection-set))
+
+(defn- data-for-leaf
+  [_ {:keys [analyzer/type-description]} _]
+  (generate-nested-leaf type-description))
 
 (defn- data-for-subselection
-  [opts {:keys [analyzer/type-name]} {:keys [graphql/selection-set] :as field}]
-  (when selection-set
-    {:graphql/canonical-selection
-     (resolve-selection-set
-       (assoc opts
-              :scope-type     type-name
-              :type-condition nil)
-       selection-set)}))
+  [opts
+   {:keys [analyzer/type-description
+           analyzer/type-name]}
+   {:keys [graphql/selection-set]}]
+  (->> (resolve-selection-set
+         (assoc opts
+                :scope-type     type-name
+                :type-condition nil)
+         selection-set)
+       (generate-nested-selection type-description)))
 
 (defn- resolve-field*
   [opts field]
   (let [field-type (field-type-of opts field)]
     (merge
-      (data-for-field opts field-type field)
-      (data-for-subselection opts field-type field))))
+      (select-keys field [:analyzer/field-name])
+      (if (leaf? field)
+        (data-for-leaf opts field-type field)
+        (data-for-subselection opts field-type field)))))
 
 (defn- resolve-field
   [result opts field]
