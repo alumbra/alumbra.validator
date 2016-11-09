@@ -75,20 +75,34 @@
   (s/map-of :analyzer/field-name :analyzer/field))
 
 (s/def :analyzer/field
-  (s/keys :req [:analyzer/field-name
-                :analyzer/containing-type-name
-                :analyzer/type-name
-                :analyzer/non-null?
-                :analyzer/arguments]))
+  (s/merge
+    (s/keys :req [:analyzer/field-name
+                  :analyzer/containing-type-name
+                  :analyzer/arguments])
+    :analyzer/typed))
 
 (s/def :analyzer/arguments
   (s/map-of :analyzer/argument-name
             :analyzer/argument))
 
 (s/def :analyzer/argument
-  (s/keys :req [:analyzer/argument-name
+  (s/merge
+    (s/keys :req [:analyzer/argument-name])
+    :analyzer/typed))
+
+(s/def :analyzer/typed
+  ;; For validation, we only need to know whether a field is required and
+  ;; what type it has, while for canonicalisation we need to know how the
+  ;; value is nested.
+  (s/keys :req [:analyzer/type-name
                 :analyzer/non-null?
-                :analyzer/type-name]))
+                :analyzer/type-description]))
+
+(s/def :analyzer/type-description
+  (s/or :unnested (s/keys :req [:analyzer/non-null?
+                                :analyzer/type-name])
+        :nested   (s/keys :req [:analyzer/non-null?
+                                :analyzer/type-description])))
 
 (s/def :analyzer/non-null?
   :graphql/non-null?)

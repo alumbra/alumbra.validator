@@ -51,8 +51,8 @@
   (let [scope-type (:graphql/type-name type-condition)]
     (->> (resolve-selection-set
            (assoc opts
-                  :scope-type scope-type
-                  :type-condition type-condition)
+                  :scope-type     scope-type
+                  :type-condition scope-type)
            selection-set)
          (assoc-in opts [:fragments fragment-name]))))
 
