@@ -2,18 +2,25 @@
   (:require [alumbra.canonical.selection-set
              :refer [resolve-selection-set]]))
 
+;; ## Helpers
+
 (defn- root-type
-  [{:keys [analyzer/schema-root]} {:keys [graphql/operation-type]}]
+  [{{:keys [analyzer/schema-root]} :schema}
+   {:keys [graphql/operation-type]}]
   (get schema-root operation-type))
 
+;; ## Operation Resolution
+
 (defn- resolve-operation
-  [schema fragments {:keys [graphql/selection-set] :as op}]
-  (let [t (root-type schema op)
-        selection (resolve-selection-set schema fragments t nil selection-set)]
+  [opts {:keys [graphql/selection-set] :as op}]
+  (let [root-type (root-type opts op)
+        selection (resolve-selection-set
+                    (assoc opts :scope-type root-type)
+                    selection-set)]
     (-> op
         (select-keys [:graphql/operation-type :graphql/operation-name])
         (assoc :graphql/canonical-selection selection))))
 
 (defn resolve-operations
-  [schema fragments operations]
-  (map #(resolve-operation schema fragments %) operations))
+  [opts operations]
+  (map #(resolve-operation opts %) operations))

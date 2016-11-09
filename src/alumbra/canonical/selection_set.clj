@@ -10,52 +10,47 @@
   (or field-alias field-name))
 
 (defn- add-type-condition
-  [{:keys [graphql/type-name]} field]
-  (if type-name
-    (assoc field :graphql/canonical-field-type-condition type-name)
+  [{:keys [type-condition]} field]
+  (if type-condition
+    (assoc field :graphql/canonical-field-type-condition type-condition)
     field))
 
-(defn- type-from-schema
-  [schema type-name]
-  (or (get-in schema [:analyzer/types type-name])
-      (get-in schema [:analyzer/interfaces type-name])))
-
 (defn- field-type-of
-  [{:keys [analyzer/fields]} {:keys [graphql/field-name]}]
-  (get fields field-name))
+  [{:keys [schema scope-type]} {:keys [graphql/field-name]}]
+  (let [type (or (get-in schema [:analyzer/types scope-type])
+                 (get-in schema [:analyzer/interfaces scope-type]))]
+    (get-in type [:analyzer/fields field-name])))
 
 ;; ## Field Resolution
 
 (defn- data-for-field
-  [schema type field]
-  (let [{:keys [analyzer/non-null?]} (field-type-of type field)]
-    (-> field
-        (select-keys [:graphql/field-name])
-        (assoc :graphql/canonical-field-type :leaf
-               :graphql/non-null? non-null?))))
+  [_ {:keys [analyzer/non-null?]} field]
+  (-> field
+      (select-keys [:graphql/field-name])
+      (assoc :graphql/canonical-field-type :leaf
+             :graphql/non-null? non-null?)))
 
 (defn- data-for-subselection
-  [schema fragments type {:keys [graphql/selection-set] :as field}]
+  [opts {:keys [analyzer/type-name]} {:keys [graphql/selection-set] :as field}]
   (when selection-set
-    (let [{:keys [analyzer/type-name]} (field-type-of type field)]
-      {:graphql/canonical-selection (resolve-selection-set
-                                      schema
-                                      fragments
-                                      type-name
-                                      nil
-                                      selection-set)})))
+    {:graphql/canonical-selection
+     (resolve-selection-set
+       (assoc opts
+              :scope-type     type-name
+              :type-condition nil)
+       selection-set)}))
 
 (defn- resolve-field*
-  [schema fragments current-type field]
-  (let [type (type-from-schema schema current-type)]
+  [opts field]
+  (let [field-type (field-type-of opts field)]
     (merge
-      (data-for-field schema type field)
-      (data-for-subselection schema fragments type field))))
+      (data-for-field opts field-type field)
+      (data-for-subselection opts field-type field))))
 
 (defn- resolve-field
-  [result schema fragments current-type type-condition field]
-  (->> (resolve-field* schema fragments current-type field)
-       (add-type-condition type-condition)
+  [result opts field]
+  (->> (resolve-field* opts field)
+       (add-type-condition opts)
        (assoc result (field-key field))))
 
 ;; ## Inline Spread Resolution
@@ -64,15 +59,14 @@
 ;; condition to each field.
 
 (defn- resolve-inline-spread
-  [result schema fragments {:keys [graphql/type-condition
-                                   graphql/selection-set]}]
-  (->> (resolve-selection-set
-         schema
-         fragments
-         (:graphql/type-name type-condition)
-         type-condition
-         selection-set)
-       (merge result)))
+  [result opts {:keys [graphql/type-condition graphql/selection-set]}]
+  (let [fragment-type-name (:graphql/type-name type-condition)]
+    (->> (resolve-selection-set
+           (assoc opts
+                  :scope-type     fragment-type-name
+                  :type-condition fragment-type-name)
+           selection-set)
+         (merge result))))
 
 ;; ## Named Spread Resolution
 ;;
@@ -80,23 +74,17 @@
 ;; sets.
 
 (defn- resolve-named-spread
-  [result fragments {:keys [graphql/fragment-name]}]
+  [result {:keys [fragments]} {:keys [graphql/fragment-name]}]
   (merge result (get fragments fragment-name)))
 
 ;; ## Selection Set Traversal
 
 (defn resolve-selection-set
-  [schema fragments current-type type-condition selection-set]
+  [opts selection-set]
   (reduce
     (fn [result selection]
       (condp #(contains? %2 %1) selection
-        :graphql/fragment-name
-        (resolve-named-spread result fragments selection)
-
-        :graphql/type-condition
-        (resolve-inline-spread result schema fragments selection)
-
-        :graphql/field-name
-        (resolve-field
-          result schema fragments current-type type-condition selection)))
+        :graphql/fragment-name  (resolve-named-spread result opts selection)
+        :graphql/type-condition (resolve-inline-spread result opts selection)
+        :graphql/field-name     (resolve-field result opts selection)))
     {} selection-set))

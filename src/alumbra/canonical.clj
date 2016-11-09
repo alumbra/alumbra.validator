@@ -13,9 +13,10 @@
   ([analyzed-schema document]
    (canonicalize* analyzed-schema {} document))
   ([analyzed-schema variables document]
-   (let [{:keys [graphql/fragments graphql/operations]} document
-         fragments (resolve-fragments analyzed-schema fragments)]
-     (resolve-operations analyzed-schema fragments operations))))
+   (let [{:keys [graphql/fragments graphql/operations]} document]
+     (-> {:schema analyzed-schema}
+         (resolve-fragments fragments)
+         (resolve-operations operations)))))
 
 (defn canonicalize
   "Given an unanalyzed schema and a valid (!) document, create the canonical

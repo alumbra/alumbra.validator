@@ -28,7 +28,7 @@
 
 (defn- sort-fragments
   "Sort fragments topologically."
-  [schema fragments]
+  [fragments]
   (loop [graph     (dep/graph)
          result    {}
          fragments fragments]
@@ -44,21 +44,22 @@
 
 ;; ## Resolve Fragments
 
+(defn- resolve-fragment
+  [opts {:keys [graphql/fragment-name
+                graphql/type-condition
+                graphql/selection-set]}]
+  (let [scope-type (:graphql/type-name type-condition)]
+    (->> (resolve-selection-set
+           (assoc opts
+                  :scope-type scope-type
+                  :type-condition type-condition)
+           selection-set)
+         (assoc-in opts [:fragments fragment-name]))))
+
 (defn resolve-fragments
   "Resolve fragments, inlining fields from all dependent fragments directly
    into them. Produces a map associating fragment names with the canonical
    selection set for that fragment."
-  [schema fragments]
-  (->> (sort-fragments schema fragments)
-       (reduce
-         (fn [done-fragments {:keys [graphql/fragment-name
-                                     graphql/type-condition
-                                     graphql/selection-set]}]
-           (->> (resolve-selection-set
-                  schema
-                  done-fragments
-                  (:graphql/type-name type-condition)
-                  type-condition
-                  selection-set)
-                (assoc done-fragments fragment-name)))
-         {})))
+  [opts fragments]
+  (->> (sort-fragments fragments)
+       (reduce resolve-fragment opts)))
