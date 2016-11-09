@@ -258,3 +258,75 @@
         somethingElse
         }
         }"))
+
+;; ### 5.4.1.4 Fragments Must Be Used
+
+(deftest t-fragments-must-be-used
+  (is (= #{:validator/fragment-must-be-used}
+         (validate!*
+           "fragment nameFragment on Dog { name }
+            { dog { name } }"))))
+
+;; ### 5.4.2.1 Fragment Spread Target Defined
+
+(deftest t-fragment-spread-target-defined
+  (is (= #{:validator/fragment-spread-target-existence}
+         (validate!
+           "{ dog { ...undefinedFragment } }"))))
+
+;; ### 5.4.2.2 Fragment Spreads Must Not Form Cycles
+
+(deftest t-fragment-spreads-must-not-form-cycles
+  (are [s] (= #{:validator/fragment-spreads-acyclic}
+              (validate! s))
+       "{
+        dog {
+        ...nameFragment
+        }
+        }
+        fragment nameFragment on Dog {
+        name
+        ...barkVolumeFragment
+        }
+        fragment barkVolumeFragment on Dog {
+        barkVolume
+        ...nameFragment
+        }"
+       "{
+        dog {
+        ...dogFragment
+        }
+        }
+        fragment dogFragment on Dog {
+        name
+        owner {
+        ...ownerFragment
+        }
+        }
+        fragment ownerFragment on Human {
+        name
+        pets {
+        ...dogFragment
+        }
+        }"))
+
+;; ### 5.4.2.3 Fragment Spread Is Possible
+
+(deftest t-fragment-spread-is-possible
+  (are [s] (= #{} (validate! s))
+       "fragment dogFragment on Dog { ... on Dog { barkVolume } }"
+       "fragment petNameFragment on Pet { name }
+        fragment interfaceWithinObjectFragment on Dog { ...petNameFragment }"
+       "fragment catOrDogNameFragment on CatOrDog { ... on Cat { meowVolume } }
+        fragment unionWithObjectFragment on Dog { ...catOrDogNameFragment }"
+       "fragment petFragment on Pet { name ... on Dog { barkVolume } }"
+       "fragment catOrDogFragment on CatOrDog { ... on Cat { meowVolume } }"
+       "fragment unionWithInterface on Pet { ...dogOrHumanFragment }
+        fragment dogOrHumanFragment on DogOrHuman { ... on Dog { barkVolume } }")
+  (are [s] (= #{:validator/fragment-spread-type-in-scope}
+              (validate! s))
+       "fragment catInDogFragmentInvalid on Dog { ... on Cat { meowVolume } }"
+       "fragment sentientFragment on Sentient { ... on Dog { barkVolume } }"
+       "fragment humanOrAlienFragment on HumanOrAlien { ... on Cat { meowVolume } }"
+       "fragment nonIntersectingInterfaces on Pet { ...sentientFragment }
+        fragment sentientFragment on Sentient { name }"))
