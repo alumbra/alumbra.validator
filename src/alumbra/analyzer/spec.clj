@@ -129,6 +129,7 @@
 
 (s/def :analyzer/union
   (s/keys :req [:analyzer/type-name
+                :analyzer/fields
                 :analyzer/valid-fragment-spreads
                 :analyzer/union-types]))
 

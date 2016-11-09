@@ -1,5 +1,7 @@
 (ns alumbra.analyzer.unions
-  (:require [com.rpl.specter :refer [traverse ALL collect-one]]))
+  (:require [alumbra.analyzer.types.default-fields
+             :refer [default-type-fields]]
+            [com.rpl.specter :refer [traverse ALL collect-one]]))
 
 (defn analyze
   "Analyze union definitions in a GraphQL schema conforming to
@@ -20,5 +22,6 @@
                     (fnil
                       #(update % :analyzer/union-types conj union-type-name)
                       {:analyzer/type-name   type-name
+                       :analyzer/fields      (default-type-fields type-name)
                        :analyzer/union-types #{}})))
           {}))})

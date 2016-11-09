@@ -10,8 +10,7 @@
 
 (defn- valid-field-name?
   [{:keys [analyzer/fields]}]
-  (comp (into #{"__typename"} (keys fields))
-        :graphql/field-name))
+  (comp (set (keys fields)) :graphql/field-name))
 
 (defn invariant
   [_ field]

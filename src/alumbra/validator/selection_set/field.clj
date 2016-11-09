@@ -15,7 +15,7 @@
     (fn [_ {:keys [graphql/field-name]}]
       {:analyzer/field-name           field-name
        :analyzer/containing-type-name type-name
-       :analyzer/valid-field-names    (into #{"__typename"} (keys fields))})))
+       :analyzer/valid-field-names    (set (keys fields))})))
 
 (defn make-invariant
   [type invariant-fn self]
