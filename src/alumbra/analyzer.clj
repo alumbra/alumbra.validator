@@ -29,7 +29,7 @@
 ;; ## Introspection Schema/Operations
 
 (def ^:private introspection-schema
-  (-> (io/resource "alumbra/GraphQLIntrospection.schema")
+  (-> (io/resource "alumbra/GraphQLIntrospection.graphql")
       (io/input-stream)
       (ql/parse-schema)
       (analyze*)))
