@@ -8,7 +8,6 @@
              [operations :as operations]
              [selection-set :as selection-set]
              [variables :as variables]]
-            [alumbra.parser :as ql]
             [alumbra.analyzer :as a]
             [invariant.core :as invariant]))
 
