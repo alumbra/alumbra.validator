@@ -102,3 +102,159 @@
        "query directQueryOnObjectWithoutSubFields { human }"
        "query directQueryOnInterfaceWithoutSubFields { pet }"
        "query directQueryOnUnionWithoutSubFields { catOrDog }"))
+
+;; ### 5.3.1 Argument Names
+
+(deftest t-argument-names
+  (are [s] (= #{} (validate! s))
+       "fragment argOnRequiredArg on Dog {
+        doesKnowCommand(dogCommand: SIT)
+        }"
+       "fragment argOnOptional on Dog {
+        isHousetrained(atOtherHomes: true) @include(if: true)
+        }"
+       "fragment multipleArgs on Arguments {
+        multipleReqs(x: 1, y: 2)
+        }"
+       "fragment multipleArgsReverseOrder on Arguments {
+        multipleReqs(y: 1, x: 2)
+        }")
+  (are [s] (= #{:validator/argument-name-in-scope}
+              (validate! s))
+       "fragment invalidArgName on Dog {
+        doesKnowCommand(dogCommand: SIT, command: CLEAN_UP_HOUSE)
+        }"
+       ;; TODO: Directive Definitions?
+       #_"fragment invalidArgName on Dog {
+          isHousetrained (atOtherHomes: true) @include (unless: false)
+          }"))
+
+;; ### 5.3.2 Argument Uniqueness
+
+(deftest t-argument-uniqueness
+  (is (= #{:validator/argument-uniqueness}
+         (validate!
+           "fragment argOnRequiredArg on Dog {
+            doesKnowCommand(dogCommand: SIT, dogCommand: HEEL)
+            }"))))
+
+;; ### 5.3.3.1 Argument Type Uniqueness
+
+;; TODO
+
+;; ### 5.3.3.2 Required Non-Null Arguments
+
+(deftest t-required-non-null-arguments
+  (are [s] (= #{} (validate! s))
+       "fragment goodBooleanArg on Arguments {
+        booleanArgField(booleanArg: true)
+        }"
+
+       "fragment goodNonNullArg on Arguments {
+        nonNullBooleanArgField(nonNullBooleanArg: true)
+        }"
+
+       "fragment goodBooleanArgDefault on Arguments {
+        booleanArgField
+        }")
+  (are [s] (= #{:validator/required-non-null-arguments}
+              (validate! s))
+       "fragment missingRequiredArg on Arguments {
+        nonNullBooleanArgField
+        }"
+       ;; TODO: Null Literal Handling
+       #_"fragment missingRequiredArg on Arguments {
+          notNullBooleanArgField(nonNullBooleanArg: null)
+          }"))
+
+;; ### 5.4.1.1 Fragment Name Uniqueness
+
+(deftest t-fragment-name-uniqueness
+  (is (= #{}
+         (validate!
+           "{
+            dog {
+            ...fragmentOne
+            ...fragmentTwo
+            }
+            }
+            fragment fragmentOne on Dog {
+            name
+            }
+            fragment fragmentTwo on Dog {
+            owner {
+            name
+            }
+            }")))
+  (is (= #{:validator/fragment-name-uniqueness}
+         (validate!
+           "{
+            dog {
+            ...fragmentOne
+            }
+            }
+            fragment fragmentOne on Dog {
+            name
+            }
+            fragment fragmentOne on Dog {
+            owner {
+            name
+            }
+            }"))))
+
+
+;; ### 5.4.1.2 Fragment Spread Type Existence
+
+(deftest t-fragment-spread-type-existence
+  (is (= #{}
+         (validate!
+           "fragment correctType on Dog {
+            name
+            }
+            fragment inlineFragment on Dog {
+            ... on Dog {
+            name
+            }
+            }
+            fragment inlineFragment2 on Dog {
+            ... @include(if: true) {
+            name
+            }
+            }")))
+  (is (= #{:validator/fragment-spread-type-existence}
+         (validate!
+           "fragment notOnExistingType on NotInSchema {
+            name
+            }
+
+            fragment inlineNotExistingType on Dog {
+            ... on NotInSchema {
+            name
+            }
+            }"))))
+
+;; ### 5.4.1.3 Fragment On Composite Types
+
+(deftest t-fragment-spread-type-existence
+  (are [s] (= #{} (validate! s))
+       "fragment fragOnObject on Dog {
+        name
+        }"
+       "fragment fragOnInterface on Pet {
+        name
+        }"
+       "fragment fragOnUnion on CatOrDog {
+        ... on Dog {
+        name
+        }
+        }")
+  (are [s] (= #{:validator/fragment-on-composite-type}
+              (validate! s))
+       "fragment fragOnScalar on Int {
+        something
+        }"
+       "fragment inlineFragOnScalar on Dog {
+        ... on Boolean {
+        somethingElse
+        }
+        }"))

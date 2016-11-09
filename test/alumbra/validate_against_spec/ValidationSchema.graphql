@@ -47,8 +47,30 @@ schema {
   query: QueryRoot
 }
 
+# Directives (FIXME: add to some kind of base schema)
+
+directive @include on ANY
+directive @skip on ANY
+
+# Extensions from Section 5.2.3
+
 extend type QueryRoot {
   human: Human
   pet: Pet
   catOrDog: CatOrDog
+}
+
+# Extensions from Section 5.3.1
+
+type Arguments {
+  multipleReqs(x: Int!, y: Int!): Int!
+  booleanArgField(booleanArg: Boolean): Boolean
+  floatArgField(floatArg: Float): Float
+  intArgField(intArg: Int): Int
+  nonNullBooleanArgField(nonNullBooleanArg: Boolean!): Boolean!
+  booleanListArgField(booleanListArg: [Boolean]!): [Boolean]
+}
+
+extend type QueryRoot {
+  arguments: Arguments
 }
