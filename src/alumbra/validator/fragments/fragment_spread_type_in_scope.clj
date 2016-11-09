@@ -10,8 +10,9 @@
   [{:keys [analyzer/type->kind]}
    {:keys [analyzer/valid-fragment-spreads]}]
   (fn [_ value]
-    (let [t (u/type-name value)]
-      (or (not (contains? type->kind t))
+    (let [t (u/type-name value)
+          kind (get type->kind t)]
+      (or (not (contains? #{:type :interface :union} kind))
           (contains? valid-fragment-spreads t)))))
 
 (defn- valid-named-spread-type?

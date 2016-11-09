@@ -8,14 +8,22 @@
 ;; - For each `fragment` defined in the document.
 ;;   - The target type of ``fragment must have kind UNION, INTERFACE, or OBJECT.
 
-(defn invariant
+(defn make-invariant
   [{:keys [analyzer/type->kind]}]
+  (u/with-fragment-context
+    (invariant/value
+      :validator/fragment-on-composite-type
+      (fn [fragment]
+        (let [t    (u/type-name fragment)
+              kind (get type->kind t ::none)]
+          (contains? #{::none :union :interface :type} kind))))))
+
+(defn inline-spread-invariant
+  [schema _]
+  (make-invariant schema))
+
+(defn invariant
+  [schema]
   (-> (invariant/on [ALL])
       (invariant/each
-        (u/with-fragment-context
-          (invariant/value
-            :validator/fragment-on-composite-type
-            (fn [fragment]
-              (let [t    (u/type-name fragment)
-                    kind (get type->kind t ::none)]
-                (contains? #{::none :union :interface :type} kind))))))))
+        (make-invariant schema))))

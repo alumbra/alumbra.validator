@@ -13,7 +13,8 @@
 (def builder
   {:inline-spreads
    [fragment-spread-type-existence/inline-spread-invariant
-    fragment-spread-type-in-scope/inline-spread-invariant]
+    fragment-spread-type-in-scope/inline-spread-invariant
+    fragment-on-composite-type/inline-spread-invariant]
    :named-spreads
    [fragment-spread-type-in-scope/named-spread-invariant]
    :operations
