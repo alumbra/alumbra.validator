@@ -1,63 +1,10 @@
-(ns alumbra.analyzer.types)
+(ns alumbra.analyzer.types
+  (:require [alumbra.analyzer.types
+             [arguments :refer [read-arguments]]
+             [default-fields :refer [default-type-fields]]
+             [type-description :refer [describe-type]]]))
 
 ;; TODO (?): This might benefit from using specter.
-
-;; ## Type
-
-(defn- read-type-name
-  [{:keys [graphql/type-class
-           graphql/type-name
-           graphql/element-type]}]
-  (case type-class
-    :named-type type-name
-    :list-type  (read-type-name element-type)))
-
-(defn- read-type-description
-  [{:keys [graphql/type-class
-           graphql/non-null?
-           graphql/type-name
-           graphql/element-type]}]
-  (case type-class
-    :named-type {:analyzer/non-null? non-null?
-                 :analyzer/type-name type-name}
-    :list-type {:analyzer/non-null? non-null?
-                :analyzer/type-description
-                (read-type-description element-type)}))
-
-(defn- read-non-null?
-  [{:keys [graphql/non-null?]}]
-  non-null?)
-
-(defn- read-type
-  [type]
-  {:analyzer/type-description (read-type-description type)
-   :analyzer/type-name        (read-type-name type)
-   :analyzer/non-null?        (read-non-null? type)})
-
-;; ## Arguments
-
-(defn- read-arguments
-  [arguments]
-  (reduce
-    (fn [result {:keys [graphql/argument-name
-                        graphql/argument-type]}]
-      (->> {:analyzer/argument-name argument-name}
-           (merge (read-type argument-type))
-           (assoc result argument-name)))
-    {} arguments))
-
-;; ## Default Fields
-
-(defn- default-type-fields
-  [type-name]
-  {"__typename"
-   {:analyzer/field-name           "__typename"
-    :analyzer/containing-type-name type-name
-    :analyzer/arguments            {}
-    :analyzer/type-name            "String"
-    :analyzer/non-null?            true
-    :analyzer/type-description     {:analyzer/type-name "String"
-                                    :analyzer/non-null? true}}})
 
 ;; ## Fields
 
@@ -70,7 +17,7 @@
       (->> {:analyzer/field-name field-name
             :analyzer/containing-type-name type-name
             :analyzer/arguments (read-arguments type-field-arguments)}
-           (merge (read-type type))
+           (merge (describe-type type))
            (assoc-in data [:analyzer/fields field-name])))
     data fields))
 
