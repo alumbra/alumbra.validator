@@ -1,4 +1,5 @@
-(ns alumbra.canonical.selection-set)
+(ns alumbra.canonical.selection-set
+  (:require [alumbra.canonical.value :refer [resolve-value]]))
 
 (declare resolve-selection-set)
 
@@ -57,6 +58,14 @@
   [_ {:keys [analyzer/type-description]} _]
   (generate-nested-leaf type-description))
 
+(defn- data-for-arguments
+  [opts _ {:keys [graphql/arguments]}]
+  (->> (for [{:keys [graphql/argument-name
+                     graphql/argument-value]} arguments]
+         [argument-name (resolve-value opts argument-value)])
+       (into {})
+       (hash-map :graphql/canonical-arguments)))
+
 (defn- data-for-subselection
   [opts
    {:keys [analyzer/type-description
@@ -74,6 +83,7 @@
   (let [field-type (field-type-of opts field)]
     (merge
       (select-keys field [:analyzer/field-name])
+      (data-for-arguments opts field-type field)
       (if (leaf? field)
         (data-for-leaf opts field-type field)
         (data-for-subselection opts field-type field)))))

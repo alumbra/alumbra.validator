@@ -14,7 +14,8 @@
    (canonicalize* analyzed-schema {} document))
   ([analyzed-schema variables document]
    (let [{:keys [graphql/fragments graphql/operations]} document]
-     (-> {:schema analyzed-schema}
+     (-> {:schema    analyzed-schema
+          :variables variables}
          (resolve-fragments fragments)
          (resolve-operations operations)))))
 
