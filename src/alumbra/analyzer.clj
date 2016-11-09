@@ -51,10 +51,14 @@
       (assoc-in ["__type" :analyzer/containing-type-name] type-name)))
 
 (defn add-introspection-queries
-  [{:keys [analyzer/schema-root] :as schema}]
+  [{:keys [analyzer/schema-root
+           analyzer/types]
+    :as schema}]
   (if-let [root-type (get schema-root "query")]
-    (->> (introspection-query-fields-for root-type)
-         (update-in schema [:analyzer/types root-type :analyzer/fields] merge))
+    (if (contains? types root-type)
+      (->> (introspection-query-fields-for root-type)
+           (update-in schema [:analyzer/types root-type :analyzer/fields] merge))
+      schema)
     schema))
 
 ;; ## Analyzer + Introspection

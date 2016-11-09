@@ -4,6 +4,7 @@
              [properties :as prop]]
             [alumbra.parser :as ql]
             [alumbra.analyzer :as analyzer]
+            [alumbra.analyzer spec]
             [alumbra.generators.schema :as g]
             [clojure.spec :as s]))
 
