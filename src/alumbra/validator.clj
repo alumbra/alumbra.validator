@@ -28,7 +28,7 @@
   "Generate a function that will valid a GraphQL AST conforming to the
    spec `:graphql/document`."
   [schema]
-  (let [analyzed-schema (a/analyze schema)
+  (let [analyzed-schema (a/analyze-schema schema)
         invariant (generate-invariant analyzed-schema)]
     (fn [ast]
       (invariant/check invariant ast))))

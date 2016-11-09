@@ -29,4 +29,4 @@
   ([schema document]
    (canonicalize schema {} document))
   ([schema variables document]
-   (canonicalize* (a/analyze schema) variables document)))
+   (canonicalize* (a/analyze-schema schema) variables document)))

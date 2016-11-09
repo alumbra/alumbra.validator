@@ -30,7 +30,7 @@
 
 (def ^:private introspection-schema
   (-> (io/resource "alumbra/GraphQLIntrospection.schema")
-      (slurp)
+      (io/input-stream)
       (ql/parse-schema)
       (analyze*)))
 
@@ -50,7 +50,7 @@
       (assoc-in ["__schema" :analyzer/containing-type-name] type-name)
       (assoc-in ["__type" :analyzer/containing-type-name] type-name)))
 
-(defn add-introspection-queries
+(defn- add-introspection-queries
   [{:keys [analyzer/schema-root
            analyzer/types]
     :as schema}]
@@ -63,8 +63,18 @@
 
 ;; ## Analyzer + Introspection
 
-(defn analyze
+(defn analyze-schema
+  "Analyze a schema AST conforming to `:graphql/schema`."
   [schema]
   (->> (analyze* schema)
        (merge-with into introspection-schema)
        (add-introspection-queries)))
+
+(defn analyze-schema-string
+  "Uses alumbra's parser to generate the schema's AST before passing it to
+   [[analyze-schema]]."
+  [schema-string]
+  (let [schema (ql/parse-schema schema-string)]
+    (when (ql/error? schema)
+      (throw schema))
+    (analyze-schema schema)))

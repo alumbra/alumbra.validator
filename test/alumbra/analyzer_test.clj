@@ -13,4 +13,4 @@
     [schema g/-schema]
     (let [ast (ql/parse-schema schema)]
       (when-not (ql/error? ast)
-        (s/valid? :analyzer/schema (analyzer/analyze ast))))))
+        (s/valid? :analyzer/schema (analyzer/analyze-schema ast))))))
