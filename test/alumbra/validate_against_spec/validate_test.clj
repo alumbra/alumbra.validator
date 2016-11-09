@@ -330,3 +330,95 @@
        "fragment humanOrAlienFragment on HumanOrAlien { ... on Cat { meowVolume } }"
        "fragment nonIntersectingInterfaces on Pet { ...sentientFragment }
         fragment sentientFragment on Sentient { name }"))
+
+;; ### 5.5.1 Input Object Field Uniqueness
+
+;; TODO
+
+;; ### 5.6.1 Directives Are Defined
+
+(deftest t-directives-are-defined
+  (are [s] (= #{} (validate! s))
+       "{ dog { name @include(if: true) } }")
+  (are [s] (= #{:validator/directive-defined}
+              (validate! s))
+       "{ dog { name @unknown } }"))
+
+;; ### 5.6.2 Directives Are In Valid Locations
+
+;; TODO
+
+;; ### 5.6.3 Directives Are Unique Per Location
+
+(deftest t-directives-are-unique-per-location
+  (are [s] (= #{} (validate! s))
+       "query ($foo: Boolean = true, $bar: Boolean = false) {
+        dog @skip(if: $foo) {
+        name
+        }
+        dog @skip(if: $bar) {
+        nickname
+        }
+        }")
+  (are [s] (= #{:validator/directive-uniqueness}
+              (validate! s))
+       "query ($foo: Boolean = true, $bar: Boolean = false) {
+        dog @skip(if: $foo) @skip(if: $bar) { name }
+        }"))
+
+;; ### 5.7.1 Variable Uniqueness
+
+(deftest t-variable-uniqueness
+  (are [s] (= #{} (validate! s))
+       "query A($atOtherHomes: Boolean) { ...HouseTrainedFragment }
+        query B($atOtherHomes: Boolean) { ...HouseTrainedFragment }
+        fragment HouseTrainedFragment on QueryRoot {
+        dog { isHousetrained(atOtherHomes: $atOtherHomes) }
+        }")
+  (are [s] (= #{:validator/variable-uniqueness}
+              (validate! s))
+       "query houseTrainedQuery($atOtherHomes: Boolean, $atOtherHomes: Boolean) {
+        dog {
+        isHousetrained(atOtherHomes: $atOtherHomes)
+        }
+        }"))
+
+;; ### 5.7.2 Variable Default Values are Correctly Typed
+
+;; TODO
+
+;; ### 5.7.3 Variables are Input Types
+
+(deftest t-variables-are-input-types
+  (are [s] (= #{} (validate! s))
+       "query takesBoolean($atOtherHomes: Boolean) {
+        dog {
+        isHousetrained(atOtherHomes: $atOtherHomes)
+        }
+        }"
+       "query takesComplexInput($complexInput: ComplexInput) {
+        findDog(complex: $complexInput) {
+        name
+        }
+        }"
+       "query TakesListOfBooleanBang($booleans: [Boolean!]) {
+        booleanList(booleanListArg: $booleans)
+        }")
+  (are [s] (= #{:validator/variables-are-input-types}
+              (validate! s))
+       "query takesCat($cat: Cat) { dog { name} }"
+       "query takesDogBang($dog: Dog!) { dog { name } }"
+       "query takesListOfPet($pets: [Pet]) { dog { name } }"
+       "query takesCatOrDog($catOrDog: CatOrDog) { dog { name } }"))
+
+;; ### 5.7.4 All Variable Uses Defined
+
+;; TODO
+
+;; ### 5.7.5 All Variables Used
+
+;; TODO
+
+;; ### 5.7.6 All Variable Usages Allowed
+
+;; TODO

@@ -75,3 +75,12 @@ type Arguments {
 extend type QueryRoot {
   arguments: Arguments
 }
+
+# Extensions from Section 5.7.3
+
+input ComplexInput { name: String, owner: String }
+
+extend type QueryRoot {
+  findDog(complex: ComplexInput): Dog
+  booleanList(booleanListArg: [Boolean!]): Boolean
+}
