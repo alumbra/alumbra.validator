@@ -1,6 +1,13 @@
 (ns alumbra.analyzer.valid-fragment-spreads
   (:require [clojure.set :as set]))
 
+(defn- add-valid-fragment-spreads-to-union
+  [{:keys [analyzer/types]} union-types allowed-types]
+  (->> (mapcat
+         (comp :analyzer/valid-fragment-spreads types)
+         union-types)
+       (into allowed-types)))
+
 (defn- add-matching-unions
   [{:keys [analyzer/unions]} allowed-types]
   (->> unions
@@ -18,6 +25,7 @@
   (->> (concat implements implemented-by union-types)
        (into #{type-name})
        (add-matching-unions schema)
+       (add-valid-fragment-spreads-to-union schema union-types)
        (assoc type :analyzer/valid-fragment-spreads)))
 
 (defn- add-valid-fragment-spreads
