@@ -11,7 +11,7 @@
       (io/input-stream)
       (ql/parse-schema)))
 
-(def validate!
+(def validate!*
   (comp set
         #(map :invariant/name %)
         (validator schema)
@@ -19,6 +19,9 @@
            (throw (Exception. %))
            %)
         ql/parse-document))
+
+(def validate!
+  (comp #(disj % :validator/fragment-must-be-used) validate!*))
 
 ;; ## Tests
 
@@ -53,19 +56,17 @@
 ;; ### 5.2.1 Field Selection on Objects, Interfaces and Unions Typrs
 
 (deftest t-field-selection-in-scope
-  (is (= #{:validator/fragment-must-be-used}
+  (is (= #{}
          (validate!
            "fragment interfaceFieldSelection on Pet { name }")))
-  (is (= #{:validator/fragment-must-be-used
-           :validator/field-selection-in-scope}
+  (is (= #{:validator/field-selection-in-scope}
          (validate!
            "fragment fieldNotDefined on Dog { meowVolume }
             fragment aliasedLyingFieldTargetNotDefined on Dog { barkVolume: kawVolume }")))
-  (is (= #{:validator/fragment-must-be-used
-           :validator/field-selection-in-scope}
+  (is (= #{:validator/field-selection-in-scope}
          (validate!
            "fragment definedOnImplementorsButNotInterface on Pet { nickname }")))
-  (is (= #{:validator/fragment-must-be-used}
+  (is (= #{}
          (validate!
            "fragment inDirectFieldSelectionOnUnion on CatOrDog {
               __typename
@@ -76,8 +77,7 @@
                 barkVolume
               }
             }")))
-  (is (= #{:validator/fragment-must-be-used
-           :validator/field-selection-in-scope}
+  (is (= #{:validator/field-selection-in-scope}
          (validate!
            "fragment directFieldSelectionOnUnion on CatOrDog { name barkVolume }"))))
 
@@ -88,11 +88,10 @@
 ;; ### 5.2.3 Leaf Field Selection
 
 (deftest t-leaf-field-selection
-  (is (= #{:validator/fragment-must-be-used}
+  (is (= #{}
          (validate!
            "fragment scalarSelection on Dog { barkVolume }")))
-  (is (= #{:validator/leaf-field-selection
-           :validator/fragment-must-be-used}
+  (is (= #{:validator/leaf-field-selection}
          (validate!
            "fragment scalarSelectionsNotAllowedOnBoolean on Dog {
             barkVolume {
