@@ -46,6 +46,19 @@
            (assoc result argument-name)))
     {} arguments))
 
+;; ## Default Fields
+
+(defn- default-type-fields
+  [type-name]
+  {"__typename"
+   {:analyzer/field-name           "__typename"
+    :analyzer/containing-type-name type-name
+    :analyzer/arguments            {}
+    :analyzer/type-name            "String"
+    :analyzer/non-null?            true
+    :analyzer/type-description     {:analyzer/type-name "String"
+                                    :analyzer/non-null? true}}})
+
 ;; ## Fields
 
 (defn- add-type-fields
@@ -70,7 +83,7 @@
                       graphql/type-fields]
                :as interface}]
       (->> {:analyzer/implemented-by #{}
-            :analyzer/fields         {}
+            :analyzer/fields         (default-type-fields type-name)
             :analyzer/type-name      type-name}
            (add-type-fields type-name type-fields)
            (assoc-in data  [:analyzer/interfaces type-name])))
@@ -104,7 +117,7 @@
                       graphql/type-fields
                       graphql/interface-types]}]
       (->> {:analyzer/implements #{}
-            :analyzer/fields     {}
+            :analyzer/fields     (default-type-fields type-name)
             :analyzer/type-name  type-name}
            (add-type-fields type-name type-fields)
            (assoc-in data [:analyzer/types type-name])
