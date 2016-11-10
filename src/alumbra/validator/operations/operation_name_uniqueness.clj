@@ -11,6 +11,6 @@
 
 (def invariant
   (constantly
-    (-> (invariant/on [ALL #(contains? % :graphql/operation-name)])
+    (-> (invariant/on [ALL #(contains? % :alumbra/operation-name)])
         (invariant/unique :validator/operation-name-uniqueness
-                          {:unique-by :graphql/operation-name}))))
+                          {:unique-by :alumbra/operation-name}))))

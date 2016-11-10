@@ -9,15 +9,15 @@
 ;;
 ;; The following functions should only take the schema as parameter:
 ;;
-;; - `:operations`: to be run on [:graphql/operations]
-;; - `:fragments`: to be run on [:graphql/fragments]
+;; - `:operations`: to be run on [:alumbra/operations]
+;; - `:fragments`: to be run on [:alumbra/fragments]
 ;;
 ;; The following functions should take the schema and the current scope's
-;; `:analyzer/type` map:
+;; `:type` map:
 ;;
-;; - `:fields`: to be run on [* :graphql/field]
-;; - `:inline-spreads`: to be run on [* :graphql/inline-spread]
-;; - `:named-spreads`: to be run on [* :graphql/fragment-spread]
+;; - `:fields`: to be run on [* :alumbra/field]
+;; - `:inline-spreads`: to be run on [* :alumbra/inline-spread]
+;; - `:named-spreads`: to be run on [* :alumbra/fragment-spread]
 ;;
 ;; Additionally, the following keys are allowed:
 ;;
@@ -79,13 +79,13 @@
 (defn- make-fragment-invariant
   [schema builders]
   (let [inv (make-invariant schema :fragments builders)]
-    (-> (invariant/on [:graphql/fragments])
+    (-> (invariant/on [:alumbra/fragments])
         (invariant/is? inv))))
 
 (defn- make-operation-invariant
   [schema builders]
   (let [inv (make-invariant schema :operations builders)]
-    (-> (invariant/on [:graphql/operations])
+    (-> (invariant/on [:alumbra/operations])
         (invariant/is? inv))))
 
 ;; ## Build Function

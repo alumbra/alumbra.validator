@@ -15,7 +15,7 @@
         (invariant/count-as :operations [ALL])
         (invariant/count-as
           :anonymous-operations
-          [ALL #(not (contains? % :graphql/operation-name))])
+          [ALL #(not (contains? % :alumbra/operation-name))])
         (invariant/is?
           (invariant/state :validator/lone-anonymous-operation
                            (fn [{:keys [operations anonymous-operations]}]

@@ -13,12 +13,12 @@
   (let [field-invariant         (field/make-invariant type fields self)
         named-spread-invariant  (named-spread/make-invariant type named-spreads self)
         inline-spread-invariant (inline-spread/make-invariant type inline-spreads self)]
-    (-> (invariant/on [:graphql/selection-set ALL])
+    (-> (invariant/on [:alumbra/selection-set ALL])
         (invariant/each
           (invariant/bind
-            (fn [_ {:keys [graphql/field-name
-                           graphql/type-condition
-                           graphql/fragment-name] :as x}]
+            (fn [_ {:keys [alumbra/field-name
+                           alumbra/type-condition
+                           alumbra/fragment-name] :as x}]
               (cond field-name     field-invariant
                     fragment-name  named-spread-invariant
                     type-condition inline-spread-invariant)))))))
@@ -34,9 +34,9 @@
   (invariant/recursive
     [self]
     (let [mk #(generate-invariants schema % child-invariants self)
-          type->invariant (->> [:analyzer/types
-                                :analyzer/interfaces
-                                :analyzer/unions]
+          type->invariant (->> [:types
+                                :interfaces
+                                :unions]
                                (mapcat mk)
                                (into {}))]
       (invariant/bind
@@ -46,14 +46,14 @@
 ;; ## Invariant
 
 (defn- add-operation-scope-type
-  [{:keys [analyzer/schema-root]} {:keys [graphql/operation-type] :as data}]
+  [{:keys [schema-root]} {:keys [alumbra/operation-type] :as data}]
   (if-let [t (get schema-root operation-type)]
     (assoc data :validator/scope-type t)
     data))
 
 (defn- add-fragment-scope-type
-  [{:keys [graphql/type-condition] :as data}]
-  (if-let [t (:graphql/type-name type-condition)]
+  [{:keys [alumbra/type-condition] :as data}]
+  (if-let [t (:alumbra/type-name type-condition)]
     (assoc data :validator/scope-type t)
     data))
 
@@ -69,9 +69,9 @@
   [child-invariants schema]
   (let [inv (selection-set-valid? schema child-invariants)]
     (invariant/and
-      (-> (invariant/on [:graphql/operations ALL])
+      (-> (invariant/on [:alumbra/operations ALL])
           (invariant/fmap #(add-operation-scope-type schema %))
           (invariant/each inv))
-      (-> (invariant/on [:graphql/fragments ALL])
+      (-> (invariant/on [:alumbra/fragments ALL])
           (invariant/fmap #(add-fragment-scope-type %))
           (invariant/each inv)))))

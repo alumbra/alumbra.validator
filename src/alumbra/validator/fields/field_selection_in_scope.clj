@@ -9,8 +9,8 @@
 ;;   - `fieldName` must be defined on type in scope
 
 (defn- valid-field-name?
-  [{:keys [analyzer/fields]}]
-  (comp (set (keys fields)) :graphql/field-name))
+  [{:keys [fields]}]
+  (comp (set (keys fields)) :alumbra/field-name))
 
 (defn invariant
   [_ field]

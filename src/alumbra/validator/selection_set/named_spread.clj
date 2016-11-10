@@ -2,10 +2,10 @@
   (:require [invariant.core :as invariant]))
 
 (defn- add-scope-type
-  [{:keys [graphql/type-condition] :as data}]
+  [{:keys [alumbra/type-condition] :as data}]
   (assoc data
          :validator/scope-type
-         (:graphql/type-name type-condition)))
+         (:alumbra/type-name type-condition)))
 
 (defn make-invariant
   [type invariant-fn self]

@@ -14,7 +14,7 @@
 
 (def invariant
   (constantly
-    (-> (invariant/on [:graphql/directives ALL])
+    (-> (invariant/on [:alumbra/directives ALL])
         (invariant/unique
           :validator/directive-uniqueness
-          {:unique-by :graphql/directive-name}))))
+          {:unique-by :alumbra/directive-name}))))

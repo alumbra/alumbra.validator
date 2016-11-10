@@ -9,7 +9,7 @@
 ;;   - The target type of ``fragment must have kind UNION, INTERFACE, or OBJECT.
 
 (defn make-invariant
-  [{:keys [analyzer/type->kind]}]
+  [{:keys [type->kind]}]
   (u/with-fragment-context
     (invariant/value
       :validator/fragment-on-composite-type

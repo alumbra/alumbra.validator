@@ -20,7 +20,7 @@
 
 (defn- collect-edges
   [fragments]
-  (->> (for [{:keys [graphql/fragment-name] :as fragment}
+  (->> (for [{:keys [alumbra/fragment-name] :as fragment}
              fragments]
          (->> fragment
               (traverse u/all-fragment-names)
@@ -30,7 +30,7 @@
 
 (defn- describe-fragments
   [fragments]
-  (into {} (map (juxt :graphql/fragment-name identity) fragments)))
+  (into {} (map (juxt :alumbra/fragment-name identity) fragments)))
 
 (def invariant
   (constantly

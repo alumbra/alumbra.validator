@@ -27,36 +27,36 @@
 ;;     - `value` must not be the null literal.
 
 (defn- valid-argument-name?
-  [{:keys [analyzer/arguments]}]
-  (comp (set (keys arguments)) :graphql/argument-name))
+  [{:keys [arguments]}]
+  (comp (set (keys arguments)) :alumbra/argument-name))
 
 (defn- collect-required-arguments
-  [{:keys [analyzer/arguments]}]
+  [{:keys [arguments]}]
   (->> (vals arguments)
-       (filter :analyzer/non-null?)
-       (map :analyzer/argument-name)
+       (filter :non-null?)
+       (map :argument-name)
        (set)))
 
 (defn- argument-nullable?
   [field]
   (let [required-argument? (collect-required-arguments field)]
-    (fn [{:keys [graphql/argument-name
-                 graphql/argument-value]}]
+    (fn [{:keys [alumbra/argument-name
+                 alumbra/argument-value]}]
       (or (not (required-argument? argument-name))
-          (not= (:graphql/value-type argument-value) :null)))))
+          (not= (:alumbra/value-type argument-value) :null)))))
 
 (defn- required-arguments-invariant
   [field]
   (let [required-arguments (collect-required-arguments field)
-        find-missing (fn [{:keys [graphql/arguments]}]
-                       (->> (map :graphql/argument-name arguments)
+        find-missing (fn [{:keys [alumbra/arguments]}]
+                       (->> (map :alumbra/argument-name arguments)
                             (reduce disj required-arguments)))]
     (invariant/with-error-context
       (invariant/value
         :validator/required-non-null-arguments
         (comp empty? find-missing))
       (fn [_ value]
-        {:analyzer/missing-arguments
+        {:missing-arguments
          (find-missing value)}))))
 
 (defn- field-arguments-invariant
@@ -65,7 +65,7 @@
       (invariant/is?
         (invariant/and
           (required-arguments-invariant field)
-          (-> (invariant/on [:graphql/arguments ALL])
+          (-> (invariant/on [:alumbra/arguments ALL])
               (invariant/each
                 (-> (invariant/and
                       (invariant/value
@@ -75,15 +75,15 @@
                         :validator/argument-nullable
                         (argument-nullable? field)))
                     (invariant/with-error-context
-                      (fn [_ {:keys [graphql/argument-name]}]
-                        {:analyzer/argument-name argument-name})))))))))
+                      (fn [_ {:keys [alumbra/argument-name]}]
+                        {:argument-name argument-name})))))))))
 
 (defn invariant
-  [_ {:keys [analyzer/fields]}]
+  [_ {:keys [fields]}]
   (let [field->invariant
         (->> (for [[field-name type] fields]
                [field-name (field-arguments-invariant type)])
              (into {}))]
     (invariant/bind
-      (fn [_ {:keys [graphql/field-name]}]
+      (fn [_ {:keys [alumbra/field-name]}]
         (field->invariant field-name)))))

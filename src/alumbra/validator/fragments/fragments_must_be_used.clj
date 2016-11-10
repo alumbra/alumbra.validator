@@ -14,8 +14,8 @@
       (invariant/collect-as
         ::used-fragments
         (multi-path
-          (u/all-fragment-names-in :graphql/operations)
-          (u/all-fragment-names-in :graphql/fragments)))))
+          (u/all-fragment-names-in :alumbra/operations)
+          (u/all-fragment-names-in :alumbra/fragments)))))
 
 (def invariant
   (constantly
@@ -25,5 +25,5 @@
           (invariant/property
             :validator/fragment-must-be-used
             (fn [{:keys [::used-fragments]}
-                 {:keys [graphql/fragment-name]}]
+                 {:keys [alumbra/fragment-name]}]
               (contains? used-fragments fragment-name))))))))

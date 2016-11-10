@@ -14,4 +14,4 @@
   (constantly
     (-> (invariant/on [ALL])
         (invariant/unique :validator/fragment-name-uniqueness
-                          {:unique-by :graphql/fragment-name}))))
+                          {:unique-by :alumbra/fragment-name}))))

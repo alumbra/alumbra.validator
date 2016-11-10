@@ -12,7 +12,7 @@
 ;; ## Helpers
 
 (defn- make-invariant
-  [{:keys [analyzer/type->kind]}]
+  [{:keys [type->kind]}]
   (u/with-fragment-context
     (invariant/value
       :validator/fragment-spread-type-existence

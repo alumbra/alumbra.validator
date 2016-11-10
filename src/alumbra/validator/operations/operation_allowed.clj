@@ -8,10 +8,10 @@
 ;; there is a mapping in the schema's `schema { ... }` block.
 
 (defn invariant
-  [{:keys [analyzer/schema-root]}]
+  [{:keys [schema-root]}]
   (let [allowed-type? (set (keys schema-root))]
     (-> (invariant/on [ALL])
         (invariant/each
           (invariant/value
             :validator/operation-allowed
-            (comp allowed-type? :graphql/operation-type))))))
+            (comp allowed-type? :alumbra/operation-type))))))

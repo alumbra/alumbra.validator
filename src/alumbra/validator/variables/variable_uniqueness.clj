@@ -15,6 +15,6 @@
   (constantly
     (-> (invariant/on [ALL])
         (invariant/each
-          (-> (invariant/on [:graphql/variables ALL])
+          (-> (invariant/on [:alumbra/variables ALL])
               (invariant/unique :validator/variable-uniqueness
-                                {:unique-by :graphql/variable-name}))))))
+                                {:unique-by :alumbra/variable-name}))))))

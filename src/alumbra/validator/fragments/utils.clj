@@ -9,16 +9,16 @@
     []
     p
     (cond-path
-      :graphql/selection-set
-      [:graphql/selection-set
+      :alumbra/selection-set
+      [:alumbra/selection-set
        ALL
        (multi-path
-         #(contains? % :graphql/fragment-name)
+         #(contains? % :alumbra/fragment-name)
          p)]
       STAY)))
 
 (def all-fragment-names
-  [all-named-fragments :graphql/fragment-name])
+  [all-named-fragments :alumbra/fragment-name])
 
 (defn all-fragment-names-in
   [base-key]
@@ -31,13 +31,13 @@
 (defn type-name
   "Extract the type name from a fragment spread."
   [fragment]
-  (-> fragment :graphql/type-condition :graphql/type-name))
+  (-> fragment :alumbra/type-condition :alumbra/type-name))
 
 (defn with-fragment-context
   "Add fragment information to invariant error context."
   [invariant]
   (invariant/with-error-context
     invariant
-    (fn [_ {:keys [graphql/fragment-name] :as fragment}]
-      {:analyzer/fragment-name fragment-name
-       :analyzer/type-name     (type-name fragment)})))
+    (fn [_ {:keys [alumbra/fragment-name] :as fragment}]
+      {:fragment-name fragment-name
+       :type-name     (type-name fragment)})))

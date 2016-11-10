@@ -10,17 +10,17 @@
 ;; - `directiveDefinition` must exist.
 
 (defn directive-defined?
-  [{:keys [analyzer/directives]}]
+  [{:keys [directives]}]
   (comp (set (keys directives))
-        :graphql/directive-name))
+        :alumbra/directive-name))
 
 (defn invariant
   [schema _]
-  (-> (invariant/on [:graphql/directives ALL])
+  (-> (invariant/on [:alumbra/directives ALL])
       (invariant/each
         (-> (invariant/value
               :validator/directive-defined
               (directive-defined? schema))
             (invariant/with-error-context
-              (fn [_ {:keys [graphql/directive-name]}]
-                {:analyzer/directive-name directive-name}))))))
+              (fn [_ {:keys [alumbra/directive-name]}]
+                {:directive-name directive-name}))))))

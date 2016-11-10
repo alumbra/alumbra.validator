@@ -12,9 +12,9 @@
 ;;     - The subselection set of that `selection` must NOT BE empty
 
 (defn- valid-subselection?
-  [{:keys [analyzer/type->kind]}]
+  [{:keys [type->kind]}]
   (fn [{:keys [validator/scope-type
-               graphql/selection-set]}]
+               alumbra/selection-set]}]
     (let [kind (get type->kind scope-type ::none)]
       (or (= kind ::none)
           (if (contains? #{:type :interface :union} kind)

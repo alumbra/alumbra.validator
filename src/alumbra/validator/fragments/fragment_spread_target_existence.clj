@@ -14,7 +14,7 @@
   (invariant/collect-as
     invariant
     ::known-fragments
-    [:graphql/fragments ALL (must :graphql/fragment-name)]))
+    [:alumbra/fragments ALL (must :alumbra/fragment-name)]))
 
 (def invariant
   (constantly
@@ -24,5 +24,5 @@
             (invariant/property
               :validator/fragment-spread-target-existence
               (fn [{:keys [::known-fragments]}
-                   {:keys [graphql/fragment-name]}]
+                   {:keys [alumbra/fragment-name]}]
                 (contains? known-fragments fragment-name))))))))

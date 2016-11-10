@@ -2,20 +2,20 @@
   (:require [invariant.core :as invariant]))
 
 (defn- add-scope-type
-  [{:keys [analyzer/fields]} {:keys [graphql/field-name] :as data}]
-  (if-let [t (get-in fields [field-name :analyzer/type-name])]
+  [{:keys [fields]} {:keys [alumbra/field-name] :as data}]
+  (if-let [t (get-in fields [field-name :type-name])]
     (assoc data :validator/scope-type t)
     data))
 
 (defn- with-field-context
-  [{:keys [analyzer/type-name
-           analyzer/fields]} invariant]
+  [{:keys [type-name
+           fields]} invariant]
   (invariant/with-error-context
     invariant
-    (fn [_ {:keys [graphql/field-name]}]
-      {:analyzer/field-name           field-name
-       :analyzer/containing-type-name type-name
-       :analyzer/valid-field-names    (set (keys fields))})))
+    (fn [_ {:keys [alumbra/field-name]}]
+      {:field-name           field-name
+       :containing-type-name type-name
+       :valid-field-names    (set (keys fields))})))
 
 (defn make-invariant
   [type invariant-fn self]

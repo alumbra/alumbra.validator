@@ -12,10 +12,10 @@
 
 (def invariant
   (constantly
-    (let [inv (-> (invariant/on [:graphql/arguments ALL])
+    (let [inv (-> (invariant/on [:alumbra/arguments ALL])
                   (invariant/unique :validator/argument-uniqueness
-                                    {:unique-by :graphql/argument-name}))]
+                                    {:unique-by :alumbra/argument-name}))]
       (invariant/and
         inv
-        (-> (invariant/on [:graphql/directives ALL])
+        (-> (invariant/on [:alumbra/directives ALL])
             (invariant/each inv))))))

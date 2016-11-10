@@ -14,16 +14,16 @@
 ;; ## Helpers
 
 (defn- read-type-name
-  [{:keys [graphql/type-class
-           graphql/type-name
-           graphql/element-type]}]
+  [{:keys [alumbra/type-class
+           alumbra/type-name
+           alumbra/element-type]}]
   (case type-class
     :named-type type-name
     :list-type  (read-type-name element-type)))
 
 (defn- kind-of-type
-  [{:keys [analyzer/type->kind]}
-   {:keys [graphql/type]}]
+  [{:keys [type->kind]}
+   {:keys [alumbra/type]}]
   (type->kind (read-type-name type)))
 
 ;; ## Invariant
@@ -32,7 +32,7 @@
   [schema]
   (-> (invariant/on [ALL])
       (invariant/each
-        (-> (invariant/on [:graphql/variables ALL])
+        (-> (invariant/on [:alumbra/variables ALL])
             (invariant/each
               (invariant/value
                 :validator/variables-are-input-types

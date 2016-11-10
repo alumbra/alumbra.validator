@@ -7,8 +7,8 @@
 ;; ## Helpers
 
 (defn- valid-inline-spread-type?
-  [{:keys [analyzer/type->kind]}
-   {:keys [analyzer/valid-fragment-spreads]}]
+  [{:keys [type->kind]}
+   {:keys [valid-fragment-spreads]}]
   (fn [_ value]
     (let [t (u/type-name value)
           kind (get type->kind t)]
@@ -16,10 +16,10 @@
           (contains? valid-fragment-spreads t)))))
 
 (defn- valid-named-spread-type?
-  [{:keys [analyzer/type->kind]}
-   {:keys [analyzer/valid-fragment-spreads]}]
+  [{:keys [type->kind]}
+   {:keys [valid-fragment-spreads]}]
   (fn [{:keys [::fragment-types]}
-       {:keys [graphql/fragment-name]}]
+       {:keys [alumbra/fragment-name]}]
     (let [t (get fragment-types fragment-name)]
       (or (not t)
           (not (contains? type->kind t))
@@ -39,11 +39,11 @@
   (invariant/as
     invariant
     ::fragment-types
-    [:graphql/fragments
+    [:alumbra/fragments
      ALL
-     (collect-one :graphql/fragment-name)
-     :graphql/type-condition
-     (must :graphql/type-name)]
+     (collect-one :alumbra/fragment-name)
+     :alumbra/type-condition
+     (must :alumbra/type-name)]
     conj {}))
 
 (defn inline-spread-invariant
