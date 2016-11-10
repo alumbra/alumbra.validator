@@ -3,9 +3,9 @@
 
 (defn analyze
   "Analyze scalar definitions in a GraphQL schema conforming to
-   `:graphql/schema`."
-  [{:keys [graphql/scalar-definitions]}]
-  {:analyzer/scalars
+   `:alumbra/schema`."
+  [{:keys [alumbra/scalar-definitions]}]
+  {:scalars
    (->> scalar-definitions
-        (traverse [ALL :graphql/type-name])
+        (traverse [ALL :alumbra/type-name])
         (into #{}))})

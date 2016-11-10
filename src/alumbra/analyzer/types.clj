@@ -11,46 +11,46 @@
 (defn- add-type-fields
   [type-name fields data]
   (reduce
-    (fn [data {:keys [graphql/field-name
-                      graphql/type
-                      graphql/type-field-arguments]}]
-      (->> {:analyzer/field-name field-name
-            :analyzer/containing-type-name type-name
-            :analyzer/arguments (read-arguments type-field-arguments)}
+    (fn [data {:keys [alumbra/field-name
+                      alumbra/type
+                      alumbra/type-field-arguments]}]
+      (->> {:field-name field-name
+            :containing-type-name type-name
+            :arguments (read-arguments type-field-arguments)}
            (merge (describe-type type))
-           (assoc-in data [:analyzer/fields field-name])))
+           (assoc-in data [:fields field-name])))
     data fields))
 
 ;; ## Interfaces
 
 (defn- add-interfaces
-  [data {:keys [graphql/interface-definitions]}]
+  [data {:keys [alumbra/interface-definitions]}]
   (reduce
-    (fn [data {:keys [graphql/type-name
-                      graphql/type-fields]
+    (fn [data {:keys [alumbra/type-name
+                      alumbra/type-fields]
                :as interface}]
-      (->> {:analyzer/implemented-by #{}
-            :analyzer/fields         (default-type-fields type-name)
-            :analyzer/type-name      type-name}
+      (->> {:implemented-by #{}
+            :fields         (default-type-fields type-name)
+            :type-name      type-name}
            (add-type-fields type-name type-fields)
-           (assoc-in data  [:analyzer/interfaces type-name])))
+           (assoc-in data  [:interfaces type-name])))
     data interface-definitions))
 
 (defn- add-implements
   [implementing-type-name
    implements
-   {:keys [analyzer/types analyzer/interfaces] :as data}]
+   {:keys [types interfaces] :as data}]
   (reduce
-    (fn [data {:keys [graphql/type-name]}]
+    (fn [data {:keys [alumbra/type-name]}]
       (cond-> data
         (contains? types implementing-type-name)
         (update-in
-          [:analyzer/types implementing-type-name :analyzer/implements]
+          [:types implementing-type-name :implements]
           conj
           type-name)
         (contains? interfaces type-name)
         (update-in
-          [:analyzer/interfaces type-name :analyzer/implemented-by]
+          [:interfaces type-name :implemented-by]
           conj
           implementing-type-name)))
     data implements))
@@ -58,30 +58,30 @@
 ;; ## Types
 
 (defn- add-types
-  [data {:keys [graphql/type-definitions]}]
+  [data {:keys [alumbra/type-definitions]}]
   (reduce
-    (fn [data {:keys [graphql/type-name
-                      graphql/type-fields
-                      graphql/interface-types]}]
-      (->> {:analyzer/implements #{}
-            :analyzer/fields     (default-type-fields type-name)
-            :analyzer/type-name  type-name}
+    (fn [data {:keys [alumbra/type-name
+                      alumbra/type-fields
+                      alumbra/interface-types]}]
+      (->> {:implements #{}
+            :fields     (default-type-fields type-name)
+            :type-name  type-name}
            (add-type-fields type-name type-fields)
-           (assoc-in data [:analyzer/types type-name])
+           (assoc-in data [:types type-name])
            (add-implements type-name interface-types)))
     data type-definitions))
 
 ;; ## Type Extensions
 
 (defn- extend-types
-  [data {:keys [graphql/type-extensions]}]
+  [data {:keys [alumbra/type-extensions]}]
   (reduce
-    (fn [data {:keys [graphql/type-name
-                      graphql/type-fields
-                      graphql/interface-types]}]
-      (if (get-in data [:analyzer/types type-name])
+    (fn [data {:keys [alumbra/type-name
+                      alumbra/type-fields
+                      alumbra/interface-types]}]
+      (if (get-in data [:types type-name])
         (-> data
-            (update-in [:analyzer/types type-name]
+            (update-in [:types type-name]
                        #(add-type-fields type-name type-fields %))
             (->> (add-implements type-name interface-types)))
         data))
@@ -90,32 +90,32 @@
 ;; ## Input Types
 
 (defn- add-input-types
-  [data {:keys [graphql/input-type-definitions]}]
+  [data {:keys [alumbra/input-type-definitions]}]
   (reduce
-    (fn [data {:keys [graphql/type-name
-                      graphql/input-type-fields
-                      graphql/interface-types]}]
-      (->> {:analyzer/implements #{}
-            :analyzer/fields     {}
-            :analyzer/type-name  type-name}
+    (fn [data {:keys [alumbra/type-name
+                      alumbra/input-type-fields
+                      alumbra/interface-types]}]
+      (->> {:implements #{}
+            :fields     {}
+            :type-name  type-name}
            (add-type-fields type-name input-type-fields)
-           (assoc-in data [:analyzer/input-types type-name])))
+           (assoc-in data [:input-types type-name])))
     data input-type-definitions))
 
 ;; ## Public API
 
 (defn analyze
   "Analyze the following parts of a GraphQL schema conforming to
-   `:graphql/schema`:
+   `:alumbra/schema`:
 
    - interface definitions,
    - type definitions,
    - type extensions,
    - input type definitions."
   [schema]
-  (-> {:analyzer/types       {}
-       :analyzer/input-types {}
-       :analyzer/interfaces  {}}
+  (-> {:types       {}
+       :input-types {}
+       :interfaces  {}}
       (add-interfaces schema)
       (add-types schema)
       (extend-types schema)

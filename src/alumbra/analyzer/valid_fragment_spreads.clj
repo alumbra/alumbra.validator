@@ -2,31 +2,31 @@
   (:require [clojure.set :as set]))
 
 (defn- add-valid-fragment-spreads-to-union
-  [{:keys [analyzer/types]} union-types allowed-types]
+  [{:keys [types]} union-types allowed-types]
   (->> (mapcat
-         (comp :analyzer/valid-fragment-spreads types)
+         (comp :valid-fragment-spreads types)
          union-types)
        (into allowed-types)))
 
 (defn- add-matching-unions
-  [{:keys [analyzer/unions]} allowed-types]
+  [{:keys [unions]} allowed-types]
   (->> unions
        (keep
-         (fn [[type-name {:keys [analyzer/union-types]}]]
+         (fn [[type-name {:keys [union-types]}]]
            (when (seq (set/intersection allowed-types union-types))
              type-name)))
        (into allowed-types)))
 
 (defn- add-valid-fragment-spreads-to-type
-  [schema {:keys [analyzer/type-name
-                  analyzer/implements
-                  analyzer/implemented-by
-                  analyzer/union-types] :as type}]
+  [schema {:keys [type-name
+                  implements
+                  implemented-by
+                  union-types] :as type}]
   (->> (concat implements implemented-by union-types)
        (into #{type-name})
        (add-matching-unions schema)
        (add-valid-fragment-spreads-to-union schema union-types)
-       (assoc type :analyzer/valid-fragment-spreads)))
+       (assoc type :valid-fragment-spreads)))
 
 (defn- add-valid-fragment-spreads
   [schema k]
@@ -37,8 +37,8 @@
        (update schema k)))
 
 (defn aggregate
-  [{:keys [analyzer/unions] :as schema}]
+  [{:keys [unions] :as schema}]
   (-> schema
-      (add-valid-fragment-spreads :analyzer/types)
-      (add-valid-fragment-spreads :analyzer/interfaces)
-      (add-valid-fragment-spreads :analyzer/unions)))
+      (add-valid-fragment-spreads :types)
+      (add-valid-fragment-spreads :interfaces)
+      (add-valid-fragment-spreads :unions)))

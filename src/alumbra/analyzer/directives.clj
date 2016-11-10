@@ -3,13 +3,18 @@
 
 (defn analyze
   "Analyze directive definitions in a GraphQL schema conforming to
-   `:graphql/schema`."
-  [{:keys [graphql/directive-definitions]}]
-  {:analyzer/directives
+   `:alumbra/schema`."
+  [{:keys [alumbra/directive-definitions] :as x}]
+  {:directives
    (->> directive-definitions
         (traverse
           [ALL
-           (collect-one :graphql/directive-name)
-           :graphql/type-condition
-           :graphql/type-name])
-        (into {}))})
+           (collect-one :alumbra/directive-name)
+           :alumbra/directive-locations])
+        (reduce
+          (fn [result [directive-name locations]]
+            (assoc result
+                   directive-name
+                   {:directive-locations locations
+                    :arguments {}}))
+          {}))})

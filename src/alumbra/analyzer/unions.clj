@@ -5,23 +5,23 @@
 
 (defn analyze
   "Analyze union definitions in a GraphQL schema conforming to
-   `:graphql/schema`."
-  [{:keys [graphql/union-definitions]}]
-  {:analyzer/unions
+   `:alumbra/schema`."
+  [{:keys [alumbra/union-definitions]}]
+  {:unions
    (->> union-definitions
         (traverse
           [ALL
-           (collect-one :graphql/type-name)
-           :graphql/union-types
+           (collect-one :alumbra/type-name)
+           :alumbra/union-types
            ALL
-           :graphql/type-name])
+           :alumbra/type-name])
         (reduce
           (fn [result [type-name union-type-name]]
             (update result
                     type-name
                     (fnil
-                      #(update % :analyzer/union-types conj union-type-name)
-                      {:analyzer/type-name   type-name
-                       :analyzer/fields      (default-type-fields type-name)
-                       :analyzer/union-types #{}})))
+                      #(update % :union-types conj union-type-name)
+                      {:type-name   type-name
+                       :fields      (default-type-fields type-name)
+                       :union-types #{}})))
           {}))})

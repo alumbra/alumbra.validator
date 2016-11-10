@@ -2,13 +2,13 @@
   (:require [com.rpl.specter :refer [traverse ALL collect-one]]))
 
 (defn analyze
-  [{:keys [graphql/schema-definitions]}]
-  (let [{:keys [graphql/schema-fields]} (first schema-definitions)]
-    {:analyzer/schema-root
+  [{:keys [alumbra/schema-definitions]}]
+  (let [{:keys [alumbra/schema-fields]} (first schema-definitions)]
+    {:schema-root
      (->> schema-fields
           (traverse
             [ALL
-             (collect-one :graphql/operation-type)
-             :graphql/schema-type
-             :graphql/type-name])
+             (collect-one :alumbra/operation-type)
+             :alumbra/schema-type
+             :alumbra/type-name])
           (into {}))}))

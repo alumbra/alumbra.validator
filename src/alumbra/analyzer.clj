@@ -14,8 +14,8 @@
 ;; ## Analyzer
 
 (defn- analyze*
-  "Analyze a GraphQL schema conforming to `:graphql/schema` to produce a
-   more compact representation conforming to `:analyzer/schema`."
+  "Analyze a GraphQL schema conforming to `:alumbra/schema` to produce a
+   more compact representation conforming to `:alumbra/analyzed-schema`."
   [schema]
   (-> (merge
         (directives/analyze schema)
@@ -41,14 +41,14 @@
        }"
       (ql/parse-schema)
       (analyze*)
-      (get-in [:analyzer/types "__Introspection" :analyzer/fields])
+      (get-in [:types "__Introspection" :fields])
       (dissoc "__typename")))
 
 (defn- ^:private introspection-query-fields-for
   [type-name]
   (-> introspection-query-fields
-      (assoc-in ["__schema" :analyzer/containing-type-name] type-name)
-      (assoc-in ["__type" :analyzer/containing-type-name] type-name)))
+      (assoc-in ["__schema" :containing-type-name] type-name)
+      (assoc-in ["__type" :containing-type-name] type-name)))
 
 (defn- add-introspection-queries
   [{:keys [analyzer/schema-root
@@ -57,7 +57,7 @@
   (if-let [root-type (get schema-root "query")]
     (if (contains? types root-type)
       (->> (introspection-query-fields-for root-type)
-           (update-in schema [:analyzer/types root-type :analyzer/fields] merge))
+           (update-in schema [:types root-type :fields] merge))
       schema)
     schema))
 

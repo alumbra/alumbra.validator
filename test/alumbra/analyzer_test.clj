@@ -4,7 +4,7 @@
              [properties :as prop]]
             [alumbra.parser :as ql]
             [alumbra.analyzer :as analyzer]
-            [alumbra.analyzer spec]
+            [alumbra.spec]
             [alumbra.generators.schema :as g]
             [clojure.spec :as s]))
 
@@ -13,4 +13,5 @@
     [schema g/-schema]
     (let [ast (ql/parse-schema schema)]
       (when-not (ql/error? ast)
-        (s/valid? :analyzer/schema (analyzer/analyze-schema ast))))))
+        (s/valid? :alumbra/analyzed-schema
+                  (analyzer/analyze-schema ast))))))

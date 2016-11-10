@@ -3,10 +3,10 @@
 (defn default-type-fields
   [type-name]
   {"__typename"
-   {:analyzer/field-name           "__typename"
-    :analyzer/containing-type-name type-name
-    :analyzer/arguments            {}
-    :analyzer/type-name            "String"
-    :analyzer/non-null?            true
-    :analyzer/type-description     {:analyzer/type-name "String"
-                                    :analyzer/non-null? true}}})
+   {:field-name           "__typename"
+    :containing-type-name type-name
+    :arguments            {}
+    :type-name            "String"
+    :non-null?            true
+    :type-description     {:type-name "String"
+                                    :non-null? true}}})
