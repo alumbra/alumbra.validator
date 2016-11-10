@@ -6,74 +6,72 @@
 ;; ## Helpers
 
 (defn- field-key
-  [{:keys [graphql/field-alias
-           graphql/field-name]}]
+  [{:keys [alumbra/field-alias
+           alumbra/field-name]}]
   (or field-alias field-name))
 
 (defn- add-type-condition
   [{:keys [type-condition]} field]
   (if type-condition
-    (assoc field :graphql/canonical-field-type-condition type-condition)
+    (assoc field :type-condition type-condition)
     field))
 
 (defn- field-type-of
-  [{:keys [schema scope-type]} {:keys [graphql/field-name]}]
-  (let [kind (get-in schema [:analyzer/type->kind scope-type])
+  [{:keys [schema scope-type]} {:keys [alumbra/field-name]}]
+  (let [kind (get-in schema [:type->kind scope-type])
         type (case kind
-               :type      (get-in schema [:analyzer/types scope-type])
-               :interface (get-in schema [:analyzer/interfaces scope-type])
-               :union     (get-in schema [:analyzer/unions scope-type]))]
-    (get-in type [:analyzer/fields field-name])))
+               :type      (get-in schema [:types scope-type])
+               :interface (get-in schema [:interfaces scope-type])
+               :union     (get-in schema [:unions scope-type]))]
+    (get-in type [:fields field-name])))
 
 (defn- generate-nested-selection
-  [{:keys [analyzer/type-description
-           analyzer/type-name
-           analyzer/non-null?]}
+  [{:keys [type-description
+           type-name
+           non-null?]}
    selection]
   (if type-name
-    {:graphql/canonical-field-type :object
-     :graphql/non-null?            non-null?
-     :graphql/canonical-selection  selection}
-    {:graphql/canonical-field-type :list
-     :graphql/non-null?            non-null?
-     :graphql/canonical-field
-     (generate-nested-selection type-description selection)}))
+    {:field-type    :object
+     :non-null?     non-null?
+     :selection-set selection}
+    {:field-type :list
+     :non-null?  non-null?
+     :field      (generate-nested-selection type-description selection)}))
 
 (defn- generate-nested-leaf
-  [{:keys [analyzer/type-name
-           analyzer/type-description
-           analyzer/non-null?]}]
+  [{:keys [type-name
+           type-description
+           non-null?]}]
   (if type-description
-    {:graphql/canonical-field-type :list
-     :graphql/non-null?            non-null?
-     :graphql/canonical-field
-     (generate-nested-leaf type-description)}
-    {:graphql/canonical-field-type :leaf
-     :graphql/non-null?            non-null?}))
+    {:field-type :list
+     :non-null?  non-null?
+     :field      (generate-nested-leaf type-description)}
+    {:field-type :leaf
+     :non-null?  non-null?}))
 
 ;; ## Field Resolution
 
 (defn- leaf?
-  [{:keys [graphql/selection-set]}]
+  [{:keys [alumbra/selection-set]}]
   (not selection-set))
 
 (defn- data-for-leaf
-  [_ {:keys [analyzer/type-description]} _]
+  [_ {:keys [type-description]} _]
   (generate-nested-leaf type-description))
 
 (defn- data-for-arguments
-  [opts _ {:keys [graphql/arguments]}]
-  (->> (for [{:keys [graphql/argument-name
-                     graphql/argument-value]} arguments]
+  [opts _ {:keys [alumbra/arguments]}]
+  (->> (for [{:keys [alumbra/argument-name
+                     alumbra/argument-value]} arguments]
          [argument-name (resolve-value opts argument-value)])
        (into {})
-       (hash-map :graphql/canonical-arguments)))
+       (hash-map :arguments)))
 
 (defn- data-for-subselection
   [opts
-   {:keys [analyzer/type-description
-           analyzer/type-name]}
-   {:keys [graphql/selection-set]}]
+   {:keys [type-description
+           type-name]}
+   {:keys [alumbra/selection-set]}]
   (->> (resolve-selection-set
          (assoc opts
                 :scope-type     type-name
@@ -84,8 +82,9 @@
 (defn- resolve-field*
   [opts field]
   (let [field-type (field-type-of opts field)]
+    ;; TODO: attach expected value type
     (merge
-      (select-keys field [:analyzer/field-name])
+      {:field-name (:alumbra/field-name field)}
       (data-for-arguments opts field-type field)
       (if (leaf? field)
         (data-for-leaf opts field-type field)
@@ -103,8 +102,8 @@
 ;; condition to each field.
 
 (defn- resolve-inline-spread
-  [result opts {:keys [graphql/type-condition graphql/selection-set]}]
-  (let [fragment-type-name (:graphql/type-name type-condition)]
+  [result opts {:keys [alumbra/type-condition alumbra/selection-set]}]
+  (let [fragment-type-name (:alumbra/type-name type-condition)]
     (->> (resolve-selection-set
            (assoc opts
                   :scope-type     fragment-type-name
@@ -118,7 +117,7 @@
 ;; sets.
 
 (defn- resolve-named-spread
-  [result {:keys [fragments]} {:keys [graphql/fragment-name]}]
+  [result {:keys [fragments]} {:keys [alumbra/fragment-name]}]
   (merge result (get fragments fragment-name)))
 
 ;; ## Selection Set Traversal
@@ -128,7 +127,7 @@
   (reduce
     (fn [result selection]
       (condp #(contains? %2 %1) selection
-        :graphql/fragment-name  (resolve-named-spread result opts selection)
-        :graphql/type-condition (resolve-inline-spread result opts selection)
-        :graphql/field-name     (resolve-field result opts selection)))
+        :alumbra/fragment-name  (resolve-named-spread result opts selection)
+        :alumbra/type-condition (resolve-inline-spread result opts selection)
+        :alumbra/field-name     (resolve-field result opts selection)))
     {} selection-set))

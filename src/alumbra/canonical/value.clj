@@ -3,18 +3,18 @@
 ;; ## Helpers
 
 (defn- resolve-object
-  [continue-fn opts {:keys [graphql/object]}]
-  (->> (for [{:keys [graphql/field-name
-                     graphql/value]} object]
+  [continue-fn opts {:keys [alumbra/object]}]
+  (->> (for [{:keys [alumbra/field-name
+                     alumbra/value]} object]
          [field-name (continue-fn opts value)])
        (into {})))
 
 (defn- resolve-list
-  [continue-fn opts {:keys [graphql/list]}]
+  [continue-fn opts {:keys [alumbra/list]}]
   (mapv #(continue-fn opts %) list))
 
 (defn- resolve-variable
-  [{:keys [variables]} {{:keys [graphql/variable-name]} :graphql/variable}]
+  [{:keys [variables]} {{:keys [alumbra/variable-name]} :alumbra/variable}]
   (cond (contains? variables variable-name)
         (get variables variable-name)
 
@@ -28,12 +28,12 @@
 ;; ## Resolve Value
 
 (defn resolve-value
-  [opts {:keys [graphql/value-type] :as value}]
+  [opts {:keys [alumbra/value-type] :as value}]
   (case value-type
-    :string   (:graphql/string value)
-    :integer  (:graphql/integer value)
-    :float    (:graphql/float value)
-    :boolean  (:graphql/boolean value)
+    :string   (:alumbra/string value)
+    :integer  (:alumbra/integer value)
+    :float    (:alumbra/float value)
+    :boolean  (:alumbra/boolean value)
     :variable (resolve-variable opts value)
     :object   (resolve-object resolve-value opts value)
     :list     (resolve-list resolve-value opts value)))

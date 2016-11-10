@@ -5,21 +5,23 @@
 ;; ## Helpers
 
 (defn- root-type
-  [{{:keys [analyzer/schema-root]} :schema}
-   {:keys [graphql/operation-type]}]
+  [{{:keys [schema-root]} :schema}
+   {:keys [alumbra/operation-type]}]
   (get schema-root operation-type))
 
 ;; ## Operation Resolution
 
 (defn- resolve-operation
-  [opts {:keys [graphql/selection-set] :as op}]
+  [opts {:keys [alumbra/selection-set
+                alumbra/operation-type
+                alumbra/operation-name] :as op}]
   (let [root-type (root-type opts op)
         selection (resolve-selection-set
                     (assoc opts :scope-type root-type)
                     selection-set)]
-    (-> op
-        (select-keys [:graphql/operation-type :graphql/operation-name])
-        (assoc :graphql/canonical-selection selection))))
+     (cond-> {:operation-type operation-type
+              :selection-set  selection}
+       operation-name (assoc :operation-name operation-name))))
 
 (defn resolve-operations
   [opts operations]

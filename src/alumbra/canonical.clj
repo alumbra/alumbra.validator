@@ -13,7 +13,7 @@
   ([analyzed-schema document]
    (canonicalize* analyzed-schema {} document))
   ([analyzed-schema variables document]
-   (let [{:keys [graphql/fragments graphql/operations]} document]
+   (let [{:keys [alumbra/fragments alumbra/operations]} document]
      (-> {:schema    analyzed-schema
           :variables variables}
          (resolve-fragments fragments)

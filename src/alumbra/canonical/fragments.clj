@@ -11,16 +11,16 @@
       []
       p
       (cond-path
-        :graphql/selection-set
-        [:graphql/selection-set
+        :alumbra/selection-set
+        [:alumbra/selection-set
          ALL
          (multi-path
-           (must :graphql/fragment-name)
+           (must :alumbra/fragment-name)
            p)]
         STAY))))
 
 (defn- add-fragment-dependencies
-  [graph {:keys [graphql/fragment-name] :as fragment}]
+  [graph {:keys [alumbra/fragment-name] :as fragment}]
   (->> (traverse all-fragment-dependencies fragment)
        (reduce
          #(dep/depend %1 fragment-name %2)
@@ -33,7 +33,7 @@
          result    {}
          fragments fragments]
     (if (seq fragments)
-      (let [[{:keys [graphql/fragment-name] :as fragment} & rst] fragments]
+      (let [[{:keys [alumbra/fragment-name] :as fragment} & rst] fragments]
         (recur
           (add-fragment-dependencies graph fragment)
           (assoc result fragment-name fragment)
@@ -45,10 +45,10 @@
 ;; ## Resolve Fragments
 
 (defn- resolve-fragment
-  [opts {:keys [graphql/fragment-name
-                graphql/type-condition
-                graphql/selection-set]}]
-  (let [scope-type (:graphql/type-name type-condition)]
+  [opts {:keys [alumbra/fragment-name
+                alumbra/type-condition
+                alumbra/selection-set]}]
+  (let [scope-type (:alumbra/type-name type-condition)]
     (->> (resolve-selection-set
            (assoc opts
                   :scope-type     scope-type
