@@ -61,20 +61,40 @@
       schema)
     schema))
 
-;; ## Analyzer + Introspection
+(defn- analyze-schema-with-introspection
+  "Analyze a GraphQL schema conforming to `:alumbra/schema` to produce a
+   more compact representation conforming to `:alumbra/analyzed-schema`.
 
-(defn analyze-schema
-  "Analyze a schema AST conforming to `:graphql/schema`."
+   Adds the types/fields necessary for introspection.
+   "
   [schema]
   (->> (analyze* schema)
        (merge-with into introspection-schema)
        (add-introspection-queries)))
 
-(defn analyze-schema-string
-  "Uses alumbra's parser to generate the schema's AST before passing it to
-   [[analyze-schema]]."
-  [schema-string]
-  (let [schema (ql/parse-schema schema-string)]
-    (when (ql/error? schema)
-      (throw schema))
-    (analyze-schema schema)))
+;; ## Analysis
+
+(defprotocol AnalyzeableSchema
+  (analyze-schema [schema]
+    "Analyze a GraphQL schema conforming to `:alumbra/schema` to produce a
+     more compact representation conforming to `:alumbra/analyzed-schema`."))
+
+(extend-protocol AnalyzeableSchema
+  String
+  (analyze-schema [s]
+    (let [schema (ql/parse-schema s)]
+      (when (ql/error? schema)
+        (throw schema))
+      (analyze-schema schema)))
+
+  java.io.File
+  (analyze-schema [f]
+    (analyze-schema (slurp f)))
+
+  java.io.InputStream
+  (analyze-schema [in]
+    (analyze-schema (slurp in)))
+
+  clojure.lang.IPersistentMap
+  (analyze-schema [m]
+    (analyze-schema-with-introspection m)))

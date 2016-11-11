@@ -46,10 +46,7 @@
    schema AST conforming to `:graphql/schema`.
    "
   [schema]
-  (-> (if (string? schema)
-        (a/analyze-schema-string schema)
-        (a/analyze-schema schema))
-      (validator*)))
+  (validator (a/analyze-schema schema)))
 
 (defn validate
   "Validate a GraphQL AST conforming to the spec `:graphql/document` using a
