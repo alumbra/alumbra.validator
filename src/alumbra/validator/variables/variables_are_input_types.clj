@@ -1,5 +1,8 @@
 (ns alumbra.validator.variables.variables-are-input-types
-  (:require [invariant.core :as invariant]
+  (:require [alumbra.validator.errors
+             :refer [with-variable-context
+                     with-operation-context]]
+            [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
 ;; Formal Specification (5.7.3)
@@ -32,11 +35,16 @@
   [schema]
   (-> (invariant/on [ALL])
       (invariant/each
-        (-> (invariant/on [:alumbra/variables ALL])
-            (invariant/each
-              (invariant/value
-                :validator/variables-are-input-types
-                (fn [variable]
-                  (contains?
-                    #{:input-type :scalar :enum}
-                    (kind-of-type schema variable)))))))))
+        (with-operation-context
+          (-> (invariant/on [:alumbra/variables ALL])
+              (invariant/each
+                (-> (invariant/value
+                      :variable/input-type
+                      (fn [variable]
+                        (contains?
+                          #{:input-type :scalar :enum}
+                          (kind-of-type schema variable))))
+                    (invariant/with-error-context
+                      (fn [_ {:keys [alumbra/type]}]
+                        {:alumbra/variable-type-name (read-type-name type)}))
+                    (with-variable-context))))))))

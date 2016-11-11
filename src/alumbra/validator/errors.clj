@@ -44,6 +44,12 @@
     error-context
     {:invariant/duplicate-value :alumbra/directive-name}))
 
+(defmethod error-data :variable/name-unique
+  [_ error-context]
+  (rename-keys
+    error-context
+    {:invariant/duplicate-value :alumbra/variable-name}))
+
 ;; ## Conversion
 
 (defn- as-location
@@ -110,3 +116,10 @@
     invariant
     (fn [_ dir]
       (select-keys dir [:alumbra/directive-name]))))
+
+(defn with-variable-context
+  [invariant]
+  (invariant/with-error-context
+    invariant
+    (fn [_ var]
+      (select-keys var [:alumbra/variable-name]))))

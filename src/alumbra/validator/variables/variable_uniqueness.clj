@@ -1,5 +1,7 @@
 (ns alumbra.validator.variables.variable-uniqueness
-  (:require [invariant.core :as invariant]
+  (:require [alumbra.validator.errors
+             :refer [with-operation-context]]
+            [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
 ;; Formal Specification (5.7.1)
@@ -15,6 +17,7 @@
   (constantly
     (-> (invariant/on [ALL])
         (invariant/each
-          (-> (invariant/on [:alumbra/variables ALL])
-              (invariant/unique :validator/variable-uniqueness
-                                {:unique-by :alumbra/variable-name}))))))
+          (with-operation-context
+            (-> (invariant/on [:alumbra/variables ALL])
+                (invariant/unique :variable/name-unique
+                                  {:unique-by :alumbra/variable-name})))))))

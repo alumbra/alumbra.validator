@@ -394,7 +394,7 @@
      fragment HouseTrainedFragment on QueryRoot {
      dog { isHousetrained(atOtherHomes: $atOtherHomes) }
      }"
-    #{:validator/variable-uniqueness}
+    #{:variable/name-unique}
     "query houseTrainedQuery($atOtherHomes: Boolean, $atOtherHomes: Boolean) {
      dog {
      isHousetrained(atOtherHomes: $atOtherHomes)
@@ -423,7 +423,7 @@
     "query TakesListOfBooleanBang($booleans: [Boolean!]) {
      booleanList(booleanListArg: $booleans)
      }"
-    #{:validator/variables-are-input-types}
+    #{:variable/input-type}
     "query takesCat($cat: Cat) { dog { name} }"
     "query takesDogBang($dog: Dog!) { dog { name } }"
     "query takesListOfPet($pets: [Pet]) { dog { name } }"
