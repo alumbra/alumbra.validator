@@ -1,5 +1,7 @@
 (ns alumbra.validator.operations.operation-allowed
-  (:require [invariant.core :as invariant]
+  (:require [alumbra.validator.errors
+             :refer [with-operation-context]]
+            [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
 ;; [NOT IN SPEC]
@@ -12,6 +14,7 @@
   (let [allowed-type? (set (keys schema-root))]
     (-> (invariant/on [ALL])
         (invariant/each
-          (invariant/value
-            :validator/operation-allowed
-            (comp allowed-type? :alumbra/operation-type))))))
+          (with-operation-context
+            (invariant/value
+              :operation/allowed
+              (comp allowed-type? :alumbra/operation-type)))))))

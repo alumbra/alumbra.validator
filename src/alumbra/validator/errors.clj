@@ -13,6 +13,12 @@
   [_ error-context]
   error-context)
 
+(defmethod error-data :operation/name-unique
+  [_ error-context]
+  (rename-keys
+    error-context
+    {:invariant/duplicate-value :alumbra/operation-name}))
+
 (defmethod error-data :argument/name-unique
   [_ error-context]
   (rename-keys
@@ -49,11 +55,20 @@
     invariant
     (fn [_ {:keys [alumbra/field-name]}]
       {:alumbra/field-name           field-name
-       :alumbra/containing-type-name type-name})))
+       :alumbra/containing-type-name type-name
+       :alumbra/valid-field-names    (set (keys fields))})))
 
 (defn with-argument-context
   [invariant]
   (invariant/with-error-context
     invariant
-    (fn [_ {:keys [alumbra/argument-name]}]
-      {:alumbra/argument-name argument-name})))
+    (fn [_ arg]
+      (select-keys arg [:alumbra/argument-name]))))
+
+(defn with-operation-context
+  [invariant]
+  (invariant/with-error-context
+    invariant
+    (fn [_ op]
+      (select-keys op [:alumbra/operation-name
+                       :alumbra/operation-type]))))

@@ -57,23 +57,23 @@
     "query getDogName { dog { name } }
      query getOwnerName { dog { owner { name } } }"
 
-    #{:validator/operation-name-uniqueness}
+    #{:operation/name-unique}
     "query getDogName { dog { name } }
      query getDogName { dog { owner { name } } }"
 
-    #{:validator/operation-name-uniqueness
-      :validator/operation-allowed}
+    #{:operation/name-unique
+      :operation/allowed}
     "query getDogName { dog { name } }
      mutation getDogName { mutateDog { id } }"))
 
-;; ### 5.1.2 Lone Anonymour Operation
+;; ### 5.1.2 Lone Anonymous Operation
 
 (deftest t-lone-anonymous-operation
   (testing-errors
     #{}
     "{ dog { name } }"
 
-    #{:validator/lone-anonymous-operation}
+    #{:operation/lone-anonymous}
     "{ dog { name } }
      query getName { dog { owner { name } } }"))
 

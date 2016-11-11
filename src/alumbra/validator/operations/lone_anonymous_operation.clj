@@ -17,7 +17,8 @@
           :anonymous-operations
           [ALL #(not (contains? % :alumbra/operation-name))])
         (invariant/is?
-          (invariant/state :validator/lone-anonymous-operation
-                           (fn [{:keys [operations anonymous-operations]}]
-                             (or (<= operations 1)
-                                 (zero? anonymous-operations))))))))
+          (invariant/state
+            :operation/lone-anonymous
+            (fn [{:keys [operations anonymous-operations]}]
+              (or (<= operations 1)
+                  (zero? anonymous-operations))))))))
