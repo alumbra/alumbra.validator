@@ -11,17 +11,22 @@
   [_ error-context]
   error-context)
 
+(defmethod error-data :argument/name-unique
+  [_ error-context]
+  (rename-keys
+    error-context
+    {:invariant/duplicate-value :alumbra/argument-name}))
+
 ;; ## Conversion
 
 (defn- as-location
   [{:keys [alumbra/metadata]}]
-  (some-> metadata
-          (select-keys [:row :column])))
+  metadata)
 
 (defn- as-validation-error
   [{:keys [invariant/name
            invariant/values
-           invarient/error-context]}]
+           invariant/error-context]}]
   (merge
     {:alumbra/validation-error-class
      name
