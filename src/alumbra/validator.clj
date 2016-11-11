@@ -3,6 +3,7 @@
              [arguments :as arguments]
              [builder :as builder]
              [directives :as directives]
+             [errors :as errors]
              [fields :as fields]
              [fragments :as fragments]
              [operations :as operations]
@@ -34,7 +35,8 @@
       ([ast] (validator ast {}))
       ([ast variables]
        ;; TODO: variables
-       (invariant/check invariant ast)))))
+       (->> (invariant/check invariant ast)
+            (errors/as-validation-errors))))))
 
 (defn validator
   "Generate a function that will validate a GraphQL AST conforming to the spec

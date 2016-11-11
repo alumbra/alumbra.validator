@@ -13,7 +13,7 @@
 
 (def validate!*
   (comp set
-        #(map :invariant/name %)
+        #(map :alumbra/validation-error-class %)
         (validator schema)
         #(if (ql/error? %)
            (throw (Exception. %))
