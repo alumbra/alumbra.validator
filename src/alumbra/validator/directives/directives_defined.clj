@@ -1,5 +1,7 @@
 (ns alumbra.validator.directives.directives-defined
-  (:require [invariant.core :as invariant]
+  (:require [alumbra.validator.errors
+             :refer [with-directive-context]]
+            [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
 ;; Formal Specification (5.6.1)
@@ -18,9 +20,7 @@
   [schema _]
   (-> (invariant/on [:alumbra/directives ALL])
       (invariant/each
-        (-> (invariant/value
-              :validator/directive-defined
-              (directive-defined? schema))
-            (invariant/with-error-context
-              (fn [_ {:keys [alumbra/directive-name]}]
-                {:directive-name directive-name}))))))
+        (with-directive-context
+          (invariant/value
+              :directive/exists
+              (directive-defined? schema))))))

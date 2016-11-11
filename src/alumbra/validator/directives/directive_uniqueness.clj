@@ -16,5 +16,5 @@
   (constantly
     (-> (invariant/on [:alumbra/directives ALL])
         (invariant/unique
-          :validator/directive-uniqueness
+          :directive/name-unique
           {:unique-by :alumbra/directive-name}))))

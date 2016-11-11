@@ -359,7 +359,7 @@
   (testing-errors
     #{}
     "{ dog { name @include(if: true) } }"
-    #{:validator/directive-defined}
+    #{:directive/exists}
     "{ dog { name @unknown } }"))
 
 ;; ### 5.6.2 Directives Are In Valid Locations
@@ -379,7 +379,7 @@
      nickname
      }
      }"
-    #{:validator/directive-uniqueness}
+    #{:directive/name-unique}
     "query ($foo: Boolean = true, $bar: Boolean = false) {
      dog @skip(if: $foo) @skip(if: $bar) { name }
      }"))

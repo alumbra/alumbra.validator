@@ -38,6 +38,12 @@
     {:invariant/cycle :alumbra/cycle-fragment-names
      :invariant/edges :alumbra/cycle-fragment-edges}))
 
+(defmethod error-data :directive/name-unique
+  [_ error-context]
+  (rename-keys
+    error-context
+    {:invariant/duplicate-value :alumbra/directive-name}))
+
 ;; ## Conversion
 
 (defn- as-location
@@ -97,3 +103,10 @@
                  :alumbra/type-condition
                  :alumbra/type-name
                  (hash-map :alumbra/fragment-type-name))))))
+
+(defn with-directive-context
+  [invariant]
+  (invariant/with-error-context
+    invariant
+    (fn [_ dir]
+      (select-keys dir [:alumbra/directive-name]))))
