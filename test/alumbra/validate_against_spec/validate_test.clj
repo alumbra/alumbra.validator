@@ -134,7 +134,7 @@
      multipleReqs(y: 1, x: 2)
      }"
 
-    #{:validator/argument-name-in-scope}
+    #{:argument/name-in-scope}
     "fragment invalidArgName on Dog {
      doesKnowCommand(dogCommand: SIT, command: CLEAN_UP_HOUSE)
      }"
@@ -147,7 +147,7 @@
 
 (deftest t-argument-uniqueness
   (testing-errors
-    #{:validator/argument-uniqueness}
+    #{:argument/name-unique}
     "fragment argOnRequiredArg on Dog {
      doesKnowCommand(dogCommand: SIT, dogCommand: HEEL)
      }"))
@@ -173,7 +173,7 @@
      booleanArgField
      }"
 
-    #{:validator/required-non-null-arguments}
+    #{:argument/required-given}
     "fragment missingRequiredArg on Arguments {
      nonNullBooleanArgField
      }"

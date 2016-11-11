@@ -1,4 +1,6 @@
-(ns alumbra.validator.errors)
+(ns alumbra.validator.errors
+  (:require [invariant.core :as invariant]
+            [clojure.set :refer [rename-keys]]))
 
 ;; ## Context Processing
 
@@ -38,3 +40,20 @@
   [errors]
   (when errors
     (mapv as-validation-error errors)))
+
+;; ## Invariant Contexts
+
+(defn with-field-context
+  [{:keys [type-name fields]} invariant]
+  (invariant/with-error-context
+    invariant
+    (fn [_ {:keys [alumbra/field-name]}]
+      {:alumbra/field-name           field-name
+       :alumbra/containing-type-name type-name})))
+
+(defn with-argument-context
+  [invariant]
+  (invariant/with-error-context
+    invariant
+    (fn [_ {:keys [alumbra/argument-name]}]
+      {:alumbra/argument-name argument-name})))

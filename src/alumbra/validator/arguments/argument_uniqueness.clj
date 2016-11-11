@@ -13,7 +13,7 @@
 (def invariant
   (constantly
     (let [inv (-> (invariant/on [:alumbra/arguments ALL])
-                  (invariant/unique :validator/argument-uniqueness
+                  (invariant/unique :argument/name-unique
                                     {:unique-by :alumbra/argument-name}))]
       (invariant/and
         inv

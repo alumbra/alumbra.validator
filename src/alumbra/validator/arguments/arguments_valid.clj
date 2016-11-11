@@ -1,5 +1,7 @@
 (ns alumbra.validator.arguments.arguments-valid
-  (:require [alumbra.validator.selection-set :as selection-set]
+  (:require [alumbra.validator
+             [errors :refer [with-argument-context]]
+             [selection-set :as selection-set]]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -26,6 +28,8 @@
 ;;     - Let `value` be the value of `argument`.
 ;;     - `value` must not be the null literal.
 
+;; ## Predicates
+
 (defn- valid-argument-name?
   [{:keys [arguments]}]
   (comp (set (keys arguments)) :alumbra/argument-name))
@@ -45,6 +49,8 @@
       (or (not (required-argument? argument-name))
           (not= (:alumbra/value-type argument-value) :null)))))
 
+;; ## Argument Invariants
+
 (defn- required-arguments-invariant
   [field]
   (let [required-arguments (collect-required-arguments field)
@@ -53,11 +59,23 @@
                             (reduce disj required-arguments)))]
     (invariant/with-error-context
       (invariant/value
-        :validator/required-non-null-arguments
+        :argument/required-given
         (comp empty? find-missing))
       (fn [_ value]
-        {:missing-arguments
+        {:alumbra/required-argument-names
          (find-missing value)}))))
+
+(defn- argument-name-in-scope-invariant
+  [field]
+  (invariant/value
+    :argument/name-in-scope
+    (valid-argument-name? field)))
+
+(defn- argument-nullable-invariant
+  [field]
+  (invariant/value
+    :validator/argument-nullable
+    (argument-nullable? field)))
 
 (defn- field-arguments-invariant
   [field]
@@ -67,16 +85,12 @@
           (required-arguments-invariant field)
           (-> (invariant/on [:alumbra/arguments ALL])
               (invariant/each
-                (-> (invariant/and
-                      (invariant/value
-                        :validator/argument-name-in-scope
-                        (valid-argument-name? field))
-                      (invariant/value
-                        :validator/argument-nullable
-                        (argument-nullable? field)))
-                    (invariant/with-error-context
-                      (fn [_ {:keys [alumbra/argument-name]}]
-                        {:argument-name argument-name})))))))))
+                (with-argument-context
+                  (invariant/and
+                    (argument-name-in-scope-invariant field)
+                    (argument-nullable-invariant field)))))))))
+
+;; ## Combined Invariant
 
 (defn invariant
   [_ {:keys [fields]}]
