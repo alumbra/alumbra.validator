@@ -25,6 +25,19 @@
     error-context
     {:invariant/duplicate-value :alumbra/argument-name}))
 
+(defmethod error-data :fragment/name-unique
+  [_ error-context]
+  (rename-keys
+    error-context
+    {:invariant/duplicate-value :alumbra/fragment-name}))
+
+(defmethod error-data :fragment/acyclic
+  [_ error-context]
+  (rename-keys
+    error-context
+    {:invariant/cycle :alumbra/cycle-fragment-names
+     :invariant/edges :alumbra/cycle-fragment-edges}))
+
 ;; ## Conversion
 
 (defn- as-location
@@ -72,3 +85,15 @@
     (fn [_ op]
       (select-keys op [:alumbra/operation-name
                        :alumbra/operation-type]))))
+
+(defn with-fragment-context
+  [invariant]
+  (invariant/with-error-context
+    invariant
+    (fn [_ frag]
+      (merge
+        (select-keys frag [:alumbra/fragment-name])
+        (some->> frag
+                 :alumbra/type-condition
+                 :alumbra/type-name
+                 (hash-map :alumbra/fragment-type-name))))))

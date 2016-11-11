@@ -22,7 +22,7 @@
 
 (def validate!
   (comp #(remove
-           (comp #{:validator/fragment-must-be-used}
+           (comp #{:fragment/must-be-used}
                  :alumbra/validation-error-class)
            %)
         validate!*))
@@ -202,7 +202,7 @@
      }
      }"
 
-    #{:validator/fragment-name-uniqueness}
+    #{:fragment/name-unique}
     "{
      dog {
      ...fragmentOne
@@ -237,7 +237,7 @@
      }
      }"
 
-    #{:validator/fragment-spread-type-existence}
+    #{:fragment/type-exists}
     "fragment notOnExistingType on NotInSchema {
      name
      }
@@ -265,7 +265,7 @@
      }
      }"
 
-    #{:validator/fragment-on-composite-type}
+    #{:fragment/on-composite-type}
     "fragment fragOnScalar on Int {
      something
      }"
@@ -281,7 +281,7 @@
   (testing-errors*
     validate!*
 
-    #{:validator/fragment-must-be-used}
+    #{:fragment/must-be-used}
     "fragment nameFragment on Dog { name }
      { dog { name } }"))
 
@@ -289,14 +289,14 @@
 
 (deftest t-fragment-spread-target-defined
   (testing-errors
-    #{:validator/fragment-spread-target-existence}
+    #{:fragment/target-exists}
     "{ dog { ...undefinedFragment } }"))
 
 ;; ### 5.4.2.2 Fragment Spreads Must Not Form Cycles
 
 (deftest t-fragment-spreads-must-not-form-cycles
   (testing-errors
-    #{:validator/fragment-spreads-acyclic}
+    #{:fragment/acyclic}
     "{
      dog {
      ...nameFragment
@@ -342,7 +342,7 @@
     "fragment catOrDogFragment on CatOrDog { ... on Cat { meowVolume } }"
     "fragment unionWithInterface on Pet { ...dogOrHumanFragment }
      fragment dogOrHumanFragment on DogOrHuman { ... on Dog { barkVolume } }"
-    #{:validator/fragment-spread-type-in-scope}
+    #{:fragment/type-in-scope}
     "fragment catInDogFragmentInvalid on Dog { ... on Cat { meowVolume } }"
     "fragment sentientFragment on Sentient { ... on Dog { barkVolume } }"
     "fragment humanOrAlienFragment on HumanOrAlien { ... on Cat { meowVolume } }"

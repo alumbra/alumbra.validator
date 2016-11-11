@@ -1,5 +1,7 @@
 (ns alumbra.validator.fragments.fragment-spread-target-existence
   (:require [alumbra.validator.fragments.utils :as u]
+            [alumbra.validator.errors
+             :refer [with-fragment-context]]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -20,9 +22,9 @@
   (constantly
     (-> (invariant/on [ALL u/all-named-fragments])
         (invariant/each
-          (u/with-fragment-context
+          (with-fragment-context
             (invariant/property
-              :validator/fragment-spread-target-existence
+              :fragment/target-exists
               (fn [{:keys [::known-fragments]}
                    {:keys [alumbra/fragment-name]}]
                 (contains? known-fragments fragment-name))))))))

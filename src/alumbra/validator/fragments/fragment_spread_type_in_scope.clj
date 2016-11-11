@@ -1,5 +1,7 @@
 (ns alumbra.validator.fragments.fragment-spread-type-in-scope
   (:require [alumbra.validator.selection-set :as selection-set]
+            [alumbra.validator.errors
+             :refer [with-fragment-context]]
             [alumbra.validator.fragments.utils :as u]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
@@ -27,10 +29,19 @@
 
 (defn- fragment-spread-invariant
   [f schema type]
-  (u/with-fragment-context
-    (invariant/property
-      :validator/fragment-spread-type-in-scope
-      (f schema type))))
+  (-> (invariant/property
+        :fragment/type-in-scope
+        (f schema type))
+      (invariant/with-error-context
+        (fn [{:keys [::fragment-types]}
+             {:keys [alumbra/fragment-name]}]
+          (merge
+            (some->> type
+                     :type-name
+                     (hash-map :alumbra/containing-type-name))
+            (some->> (get fragment-types fragment-name)
+                     (hash-map :alumbra/fragment-type-name)))))
+      (with-fragment-context)))
 
 ;; ## Invariant
 

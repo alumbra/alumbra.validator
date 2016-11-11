@@ -1,5 +1,7 @@
 (ns alumbra.validator.fragments.fragments-must-be-used
   (:require [alumbra.validator.fragments.utils :as u]
+            [alumbra.validator.errors
+             :refer [with-fragment-context]]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -21,9 +23,9 @@
   (constantly
     (-> (invariant/on [ALL])
       (invariant/each
-        (u/with-fragment-context
+        (with-fragment-context
           (invariant/property
-            :validator/fragment-must-be-used
+            :fragment/must-be-used
             (fn [{:keys [::used-fragments]}
                  {:keys [alumbra/fragment-name]}]
               (contains? used-fragments fragment-name))))))))

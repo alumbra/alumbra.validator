@@ -1,5 +1,7 @@
 (ns alumbra.validator.fragments.fragment-on-composite-type
   (:require [alumbra.validator.fragments.utils :as u]
+            [alumbra.validator.errors
+             :refer [with-fragment-context]]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -10,9 +12,9 @@
 
 (defn make-invariant
   [{:keys [type->kind]}]
-  (u/with-fragment-context
+  (with-fragment-context
     (invariant/value
-      :validator/fragment-on-composite-type
+      :fragment/on-composite-type
       (fn [fragment]
         (let [t    (u/type-name fragment)
               kind (get type->kind t ::none)]

@@ -35,6 +35,6 @@
 (def invariant
   (constantly
     (invariant/acyclic
-      :validator/fragment-spreads-acyclic
+      :fragment/acyclic
       #(collect-edges %2)
       #(describe-fragments %2))))

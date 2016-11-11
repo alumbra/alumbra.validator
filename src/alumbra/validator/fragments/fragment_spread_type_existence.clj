@@ -1,5 +1,7 @@
 (ns alumbra.validator.fragments.fragment-spread-type-existence
   (:require [alumbra.validator.fragments.utils :as u]
+            [alumbra.validator.errors
+             :refer [with-fragment-context]]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -13,9 +15,9 @@
 
 (defn- make-invariant
   [{:keys [type->kind]}]
-  (u/with-fragment-context
+  (with-fragment-context
     (invariant/value
-      :validator/fragment-spread-type-existence
+      :fragment/type-exists
       #(contains? type->kind (u/type-name %)))))
 
 (defn inline-spread-invariant
