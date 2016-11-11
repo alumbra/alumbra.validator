@@ -24,5 +24,5 @@
 (defn invariant
   [schema _]
   (invariant/value
-    :validator/leaf-field-selection
+    :field/leaf-selection
     (valid-subselection? schema)))

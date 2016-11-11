@@ -89,7 +89,7 @@
      ... on Dog { barkVolume }
      }"
 
-    #{:validator/field-selection-in-scope}
+    #{:field/name-in-scope}
     "fragment fieldNotDefined on Dog { meowVolume }
      fragment aliasedLyingFieldTargetNotDefined on Dog { barkVolume: kawVolume }"
     "fragment definedOnImplementorsButNotInterface on Pet { nickname }"
@@ -106,7 +106,7 @@
     #{}
     "fragment scalarSelection on Dog { barkVolume }"
 
-    #{:validator/leaf-field-selection}
+    #{:field/leaf-selection}
     "fragment scalarSelectionsNotAllowedOnBoolean on Dog {
      barkVolume {
      sinceWhen

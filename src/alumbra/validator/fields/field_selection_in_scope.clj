@@ -15,5 +15,5 @@
 (defn invariant
   [_ field]
   (invariant/value
-    :validator/field-selection-in-scope
+    :field/name-in-scope
     (valid-field-name? field)))
