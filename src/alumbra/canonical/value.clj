@@ -36,4 +36,7 @@
     :boolean  (:alumbra/boolean value)
     :variable (resolve-variable opts value)
     :object   (resolve-object resolve-value opts value)
+    :enum     (keyword (:alumbra/enum value))
+    :null     nil
+    :id       (:alumbra/id value)
     :list     (resolve-list resolve-value opts value)))
