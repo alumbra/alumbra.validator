@@ -28,7 +28,8 @@
   [f expected query]
   `(let [~'errors (~f ~query)]
      (is (= ~(set expected)
-            (set (map :alumbra/validation-error-class ~'errors))))
+            (set (map :alumbra/validation-error-class ~'errors)))
+         (str "  errors: " (pr-str ~'errors)))
      (when (seq ~'errors)
        (is (s/valid? :alumbra/validation-errors ~'errors)))))
 
@@ -437,3 +438,11 @@
 ;; ### 5.7.6 All Variable Usages Allowed
 
 ;; TODO
+
+;; ## Introspection Tests
+
+(deftest t-introspection-queries
+  (testing-errors
+    #{}
+    "{ __type(name: \"User\") { name fields { name type { name } } } }"
+    "{ __schema { q: queryType { name fields(includeDeprecated: true) { name } } } }"))
