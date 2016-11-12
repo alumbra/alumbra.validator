@@ -1,6 +1,7 @@
 (ns alumbra.validate-against-spec.validate-test
   (:require [clojure.test :refer :all]
             [alumbra.validator :refer [validator]]
+            [alumbra.analyzer :as analyzer]
             [alumbra.parser :as ql]
             [alumbra.spec]
             [clojure.spec :as s]
@@ -10,8 +11,7 @@
 
 (def schema
   (-> (io/resource "alumbra/validate_against_spec/ValidationSchema.graphql")
-      (io/input-stream)
-      (ql/parse-schema)))
+      (analyzer/analyze-schema)))
 
 (def validate!*
   (comp (validator schema)

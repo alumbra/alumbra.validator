@@ -24,15 +24,13 @@
      variables/builder]
     schema))
 
-(defn validator*
+(defn validator
   "Generate a function that will validate a GraphQL AST conforming to the spec
-   `:graphql/document`.
-
-   Note that `schema` has to be an analyzed schema."
+   `:alumbra/document`, based on the given `:alumbra/analyzed-schema`."
   [schema]
   (let [invariant (generate-invariant schema)]
-    (fn validator
-      ([ast] (validator ast {}))
+    (fn validate-graphql-document
+      ([ast] (validate-graphql-document ast {}))
       ([ast variables]
        (if (:alumbra/parser-errors ast)
          ast
@@ -40,20 +38,9 @@
          (->> (invariant/check invariant ast)
               (errors/as-validation-errors)))))))
 
-(defn validator
-  "Generate a function that will validate a GraphQL AST conforming to the spec
-   `:graphql/document`.
-
-   Note that the schema can be given as either a string or an already parsed
-   schema AST conforming to `:graphql/schema`.
-   "
-  [schema]
-  (validator*
-    (a/analyze-schema schema)))
-
 (defn validate
-  "Validate a GraphQL AST conforming to the spec `:graphql/document` using a
-   GraphQL schema conforming to `:graphql/schema`.
+  "Validate a GraphQL AST conforming to the spec `:alumbra/document` using a
+   GraphQL schema conforming to `:alumbra/analyzed-schema`.
 
    This generates the AST invariant on the fly, so in most cases you'll want
    to use [[validator]] which caches it."
