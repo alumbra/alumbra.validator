@@ -29,4 +29,5 @@
       (aggregate-map :unions      :union)
       (aggregate-map :directives  :directive)
       (aggregate-map :input-types :input-type)
+      (aggregate-map :enums       :enum)
       (aggregate-set :scalars     :scalar)))

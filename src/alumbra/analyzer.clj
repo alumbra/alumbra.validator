@@ -1,6 +1,7 @@
 (ns alumbra.analyzer
   (:require [alumbra.analyzer
              [directives :as directives]
+             [enums :as enums]
              [kinds :as kinds]
              [scalars :as scalars]
              [schema-root :as schema-root]
@@ -20,6 +21,7 @@
   {:pre [(not (:alumbra/parser-errors schema))]}
   (-> (merge
         (directives/analyze schema)
+        (enums/analyze schema)
         (scalars/analyze schema)
         (schema-root/analyze schema)
         (types/analyze schema)
