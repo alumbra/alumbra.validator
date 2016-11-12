@@ -52,8 +52,7 @@
       (assoc-in ["__type" :containing-type-name] type-name)))
 
 (defn- add-introspection-queries
-  [{:keys [analyzer/schema-root
-           analyzer/types]
+  [{:keys [schema-root types]
     :as schema}]
   (if-let [root-type (get schema-root "query")]
     (if (contains? types root-type)
