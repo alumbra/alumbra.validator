@@ -17,6 +17,7 @@
   "Analyze a GraphQL schema conforming to `:alumbra/schema` to produce a
    more compact representation conforming to `:alumbra/analyzed-schema`."
   [schema]
+  {:pre [(not (:alumbra/parser-errors schema))]}
   (-> (merge
         (directives/analyze schema)
         (scalars/analyze schema)
@@ -65,12 +66,13 @@
   "Analyze a GraphQL schema conforming to `:alumbra/schema` to produce a
    more compact representation conforming to `:alumbra/analyzed-schema`.
 
-   Adds the types/fields necessary for introspection.
-   "
+   Adds the types/fields necessary for introspection."
   [schema]
-  (->> (analyze* schema)
-       (merge-with into introspection-schema)
-       (add-introspection-queries)))
+  (if (:alumbra/parser-errors schema)
+    schema
+    (->> (analyze* schema)
+         (merge-with into introspection-schema)
+         (add-introspection-queries))))
 
 ;; ## Analysis
 
@@ -83,8 +85,6 @@
   String
   (analyze-schema [s]
     (let [schema (ql/parse-schema s)]
-      (when (ql/error? schema)
-        (throw schema))
       (analyze-schema schema)))
 
   java.io.File

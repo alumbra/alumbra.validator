@@ -15,9 +15,6 @@
 
 (def validate!*
   (comp (validator schema)
-        #(if (ql/error? %)
-           (throw (Exception. %))
-           %)
         ql/parse-document))
 
 (def validate!

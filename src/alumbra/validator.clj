@@ -34,9 +34,11 @@
     (fn validator
       ([ast] (validator ast {}))
       ([ast variables]
-       ;; TODO: variables
-       (->> (invariant/check invariant ast)
-            (errors/as-validation-errors))))))
+       (if (:alumbra/parser-errors ast)
+         ast
+         ;; TODO: variables
+         (->> (invariant/check invariant ast)
+              (errors/as-validation-errors)))))))
 
 (defn validator
   "Generate a function that will validate a GraphQL AST conforming to the spec

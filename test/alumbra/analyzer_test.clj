@@ -12,6 +12,6 @@
   (prop/for-all
     [schema g/-schema]
     (let [ast (ql/parse-schema schema)]
-      (when-not (ql/error? ast)
-        (s/valid? :alumbra/analyzed-schema
-                  (analyzer/analyze-schema ast))))))
+      (or (:alumbra/parser-errors ast)
+          (s/valid? :alumbra/analyzed-schema
+                    (analyzer/analyze-schema ast))))))
