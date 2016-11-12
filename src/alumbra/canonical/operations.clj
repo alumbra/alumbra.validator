@@ -11,7 +11,7 @@
 
 ;; ## Operation Resolution
 
-(defn- resolve-operation
+(defn resolve-operation
   [opts {:keys [alumbra/selection-set
                 alumbra/operation-type
                 alumbra/operation-name] :as op}]
@@ -22,7 +22,3 @@
      (cond-> {:operation-type operation-type
               :selection-set  selection}
        operation-name (assoc :operation-name operation-name))))
-
-(defn resolve-operations
-  [opts operations]
-  (map #(resolve-operation opts %) operations))

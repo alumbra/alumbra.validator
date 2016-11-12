@@ -1,32 +1,37 @@
 (ns alumbra.canonical
   (:require [alumbra.canonical
              [fragments :refer [resolve-fragments]]
-             [operations :refer [resolve-operations]]]
-            [alumbra.analyzer :as a]))
+             [operations :refer [resolve-operation]]]))
 
-(defn canonicalize*
+(defn- select-operation
+  [operations operation-name']
+  (cond operation-name'
+        (or (some
+              (fn [{:keys [alumbra/operation-name] :as operation}]
+                (when (= operation-name operation-name')
+                  operation))
+              operations)
+            (throw
+              (IllegalArgumentException. "unknown operation")))
+
+        (next operations)
+        (throw
+          (IllegalArgumentException. "no operation name supplied"))
+
+        :else
+        (first operations)))
+
+(defn canonicalize
   "Given an analyzed schema and a valid (!) document, create the canonical
-   representation of the document.
-
-   If the document declares any non-null variables a map with variable values
-   has to be given."
+   representation of the document."
   ([analyzed-schema document]
-   (canonicalize* analyzed-schema {} document))
-  ([analyzed-schema variables document]
-   (let [{:keys [alumbra/fragments alumbra/operations]} document]
+   (canonicalize analyzed-schema document {} nil))
+  ([analyzed-schema document variables]
+   (canonicalize analyzed-schema document variables nil))
+  ([analyzed-schema document variables operation-name]
+   (let [{:keys [alumbra/fragments alumbra/operations]} document
+         operation (select-operation operations operation-name)]
      (-> {:schema    analyzed-schema
           :variables variables}
          (resolve-fragments fragments)
-         (resolve-operations operations)))))
-
-(defn canonicalize
-  "Given an unanalyzed schema and a valid (!) document, create the canonical
-   representation of the document. Use [[canonicalize*]] if you want to reuse
-   a previously analyzed schema.
-
-   If the document declares any non-null variables a map with variable values
-   has to be given."
-  ([schema document]
-   (canonicalize schema {} document))
-  ([schema variables document]
-   (canonicalize* (a/analyze-schema schema) variables document)))
+         (resolve-operation operation)))))
