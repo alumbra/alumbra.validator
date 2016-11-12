@@ -3,6 +3,9 @@
 A validator for GraphQL ASTs as produced by [alumbra.parser][parser], based on
 [invariant][invariant].
 
+[![Build Status](https://travis-ci.org/alumbra/alumbra.validator.svg?branch=master)](https://travis-ci.org/alumbra/alumbra.validator)
+[![Clojars Project](https://img.shields.io/clojars/v/alumbra/validator.svg)](https://clojars.org/alumbra/validator)
+
 [parser]: https://github.com/alumbra/alumbra.parser
 [invariant]: https://github.com/xsc/invariant
 
