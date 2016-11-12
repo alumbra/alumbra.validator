@@ -1,20 +1,19 @@
 (ns alumbra.analyzer.directives
-  (:require [com.rpl.specter :refer [traverse ALL collect-one]]))
+  (:require [alumbra.analyzer.types.arguments
+             :refer [read-arguments]]))
 
 (defn analyze
   "Analyze directive definitions in a GraphQL schema conforming to
    `:alumbra/schema`."
-  [{:keys [alumbra/directive-definitions] :as x}]
+  [{:keys [alumbra/directive-definitions]}]
   {:directives
    (->> directive-definitions
-        (traverse
-          [ALL
-           (collect-one :alumbra/directive-name)
-           :alumbra/directive-locations])
         (reduce
-          (fn [result [directive-name locations]]
+          (fn [result {:keys [alumbra/directive-name
+                              alumbra/directive-locations
+                              alumbra/type-field-arguments] :as x}]
             (assoc result
                    directive-name
-                   {:directive-locations locations
-                    :arguments {}}))
+                   {:directive-locations (set directive-locations)
+                    :arguments (read-arguments type-field-arguments)}))
           {}))})
