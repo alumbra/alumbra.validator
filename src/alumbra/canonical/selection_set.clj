@@ -38,7 +38,7 @@
      :selection-set selection}
     {:field-type :list
      :non-null?  non-null?
-     :field      (generate-nested-selection type-description selection)}))
+     :field-spec (generate-nested-selection type-description selection)}))
 
 (defn- generate-nested-leaf
   [{:keys [type-name
@@ -47,8 +47,9 @@
   (if type-description
     {:field-type :list
      :non-null?  non-null?
-     :field      (generate-nested-leaf type-description)}
+     :field-spec (generate-nested-leaf type-description)}
     {:field-type :leaf
+     :type-name  type-name
      :non-null?  non-null?}))
 
 ;; ## Field Resolution
@@ -95,23 +96,29 @@
 (defn- resolve-field
   [result opts field]
   (->> (resolve-field* opts field)
-       (add-type-condition opts)
-       (assoc result (field-key field))))
+       (conj result)))
 
 ;; ## Inline Spread Resolution
 ;;
 ;; Inline spreads are merged into the current selection set, adding a type
 ;; condition to each field.
 
+(defn resolve-fragment-selection-set
+  [opts {:keys [alumbra/type-condition
+                alumbra/selection-set
+                alumbra/directives]}]
+  (let [fragment-type-name (:alumbra/type-name type-condition)
+        selection-set (resolve-selection-set
+                        (assoc opts :scope-type fragment-type-name)
+                        selection-set)]
+    (cond-> {:type-condition fragment-type-name
+             :selection-set  selection-set}
+      (seq directives)
+      (assoc :directives (resolve-directives opts directives)))))
+
 (defn- resolve-inline-spread
-  [result opts {:keys [alumbra/type-condition alumbra/selection-set]}]
-  (let [fragment-type-name (:alumbra/type-name type-condition)]
-    (->> (resolve-selection-set
-           (assoc opts
-                  :scope-type     fragment-type-name
-                  :type-condition fragment-type-name)
-           selection-set)
-         (merge result))))
+  [result opts inline-spread]
+  (conj result (resolve-fragment-selection-set opts inline-spread)))
 
 ;; ## Named Spread Resolution
 ;;
@@ -120,7 +127,7 @@
 
 (defn- resolve-named-spread
   [result {:keys [fragments]} {:keys [alumbra/fragment-name]}]
-  (merge result (get fragments fragment-name)))
+  (conj result (get fragments fragment-name)))
 
 ;; ## Selection Set Traversal
 
@@ -132,4 +139,4 @@
         :alumbra/fragment-name  (resolve-named-spread result opts selection)
         :alumbra/type-condition (resolve-inline-spread result opts selection)
         :alumbra/field-name     (resolve-field result opts selection)))
-    {} selection-set))
+    [] selection-set))

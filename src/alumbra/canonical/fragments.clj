@@ -1,5 +1,6 @@
 (ns alumbra.canonical.fragments
-  (:require [alumbra.canonical.selection-set :refer [resolve-selection-set]]
+  (:require [alumbra.canonical.selection-set
+             :refer [resolve-fragment-selection-set]]
             [com.stuartsierra.dependency :as dep]
             [com.rpl.specter :refer :all]))
 
@@ -45,16 +46,10 @@
 ;; ## Resolve Fragments
 
 (defn- resolve-fragment
-  [opts {:keys [alumbra/fragment-name
-                alumbra/type-condition
-                alumbra/selection-set]}]
-  (let [scope-type (:alumbra/type-name type-condition)]
-    (->> (resolve-selection-set
-           (assoc opts
-                  :scope-type     scope-type
-                  :type-condition scope-type)
-           selection-set)
-         (assoc-in opts [:fragments fragment-name]))))
+  [opts {:keys [alumbra/fragment-name] :as fragment}]
+  (assoc-in opts
+            [:fragments fragment-name]
+            (resolve-fragment-selection-set opts fragment)))
 
 (defn resolve-fragments
   "Resolve fragments, inlining fields from all dependent fragments directly
