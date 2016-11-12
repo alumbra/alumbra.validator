@@ -94,6 +94,14 @@
   (analyze-schema [in]
     (analyze-schema (slurp in)))
 
+  java.net.URL
+  (analyze-schema [in]
+    (analyze-schema (slurp in)))
+
+  java.net.URI
+  (analyze-schema [in]
+    (analyze-schema (slurp in)))
+
   clojure.lang.IPersistentMap
   (analyze-schema [m]
     (analyze-schema-with-introspection m)))
