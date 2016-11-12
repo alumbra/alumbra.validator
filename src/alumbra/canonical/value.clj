@@ -14,7 +14,7 @@
   (mapv #(continue-fn opts %) list))
 
 (defn- resolve-variable
-  [{:keys [variables]} {{:keys [alumbra/variable-name]} :alumbra/variable}]
+  [{:keys [variables]} {:keys [alumbra/variable-name]}]
   (cond (contains? variables variable-name)
         (get variables variable-name)
 
