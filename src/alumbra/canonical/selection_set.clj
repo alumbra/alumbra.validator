@@ -1,5 +1,7 @@
 (ns alumbra.canonical.selection-set
-  (:require [alumbra.canonical.value :refer [resolve-value]]))
+  (:require [alumbra.canonical
+             [arguments :refer [resolve-arguments]]
+             [directives :refer [resolve-directives]]]))
 
 (declare resolve-selection-set)
 
@@ -61,11 +63,13 @@
 
 (defn- data-for-arguments
   [opts _ {:keys [alumbra/arguments]}]
-  (->> (for [{:keys [alumbra/argument-name
-                     alumbra/argument-value]} arguments]
-         [argument-name (resolve-value opts argument-value)])
-       (into {})
-       (hash-map :arguments)))
+  (when (seq arguments)
+    {:arguments (resolve-arguments opts arguments)}))
+
+(defn- data-for-directives
+  [opts _ {:keys [alumbra/directives]}]
+  (when (seq directives)
+    {:directives (resolve-directives opts directives)}))
 
 (defn- data-for-subselection
   [opts
@@ -73,18 +77,16 @@
            type-name]}
    {:keys [alumbra/selection-set]}]
   (->> (resolve-selection-set
-         (assoc opts
-                :scope-type     type-name
-                :type-condition nil)
+         (assoc opts :scope-type type-name)
          selection-set)
        (generate-nested-selection type-description)))
 
 (defn- resolve-field*
   [opts field]
   (let [field-type (field-type-of opts field)]
-    ;; TODO: attach expected value type
     (merge
       {:field-name (:alumbra/field-name field)}
+      (data-for-directives opts field-type field)
       (data-for-arguments opts field-type field)
       (if (leaf? field)
         (data-for-leaf opts field-type field)
