@@ -29,11 +29,14 @@
   [schema]
   (let [invariant (generate-invariant schema)]
     (fn validate-graphql-document
-      ([ast] (validate-graphql-document ast {}))
-      ([ast variables]
+      ([ast]
+       (validate-graphql-document ast nil {}))
+      ([ast operation-name]
+       (validate-graphql-document ast operation-name {}))
+      ([ast operation-name variables]
        (if (:alumbra/parser-errors ast)
          ast
-         ;; TODO: variables
+         ;; TODO: variables/operation name
          (->> (invariant/check invariant ast)
               (errors/as-validation-errors)))))))
 
