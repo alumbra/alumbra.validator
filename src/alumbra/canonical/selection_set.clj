@@ -12,12 +12,6 @@
            alumbra/field-name]}]
   (or field-alias field-name))
 
-(defn- add-type-condition
-  [{:keys [type-condition]} field]
-  (if type-condition
-    (assoc field :type-condition type-condition)
-    field))
-
 (defn- field-type-of
   [{:keys [schema scope-type]} {:keys [alumbra/field-name]}]
   (let [kind (get-in schema [:type->kind scope-type])
@@ -117,9 +111,17 @@
       (seq directives)
       (assoc :directives (resolve-directives opts directives)))))
 
+(defn- inline-fragment-if-in-scope
+  [{:keys [scope-type]} {:keys [type-condition] :as fragment-data}]
+  (if (= scope-type (:type-condition fragment-data))
+    (dissoc fragment-data :type-condition)
+    fragment-data))
+
 (defn- resolve-inline-spread
   [result opts inline-spread]
-  (conj result (resolve-fragment-selection-set opts inline-spread)))
+  (->> (resolve-fragment-selection-set opts inline-spread)
+       (inline-fragment-if-in-scope opts)
+       (conj result)))
 
 ;; ## Named Spread Resolution
 ;;
@@ -127,8 +129,10 @@
 ;; sets.
 
 (defn- resolve-named-spread
-  [result {:keys [fragments]} {:keys [alumbra/fragment-name]}]
-  (conj result (get fragments fragment-name)))
+  [result {:keys [fragments] :as opts} {:keys [alumbra/fragment-name]}]
+  (->> (get fragments fragment-name)
+       (inline-fragment-if-in-scope opts)
+       (conj result )))
 
 ;; ## Selection Set Traversal
 
