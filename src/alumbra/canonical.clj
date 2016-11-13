@@ -21,17 +21,25 @@
         :else
         (first operations)))
 
+(defn canonicalizer
+  "Given an analyzed schema, create a function that produces the canonical
+   representation of a validated GraphQL document."
+  [analyzed-schema]
+  (fn canonicalize-document
+    ([document]
+     (canonicalize-document document nil {}))
+    ([document operation-name]
+     (canonicalize-document document operation-name {}))
+    ([document operation-name variables]
+     (let [{:keys [alumbra/fragments alumbra/operations]} document
+           operation (select-operation operations operation-name)]
+       (-> {:schema    analyzed-schema
+            :variables variables}
+           (resolve-fragments fragments)
+           (resolve-operation operation))))))
+
 (defn canonicalize
-  "Given an analyzed schema and a valid (!) document, create the canonical
-   representation of the document."
-  ([analyzed-schema document]
-   (canonicalize analyzed-schema document {} nil))
-  ([analyzed-schema document variables]
-   (canonicalize analyzed-schema document variables nil))
-  ([analyzed-schema document variables operation-name]
-   (let [{:keys [alumbra/fragments alumbra/operations]} document
-         operation (select-operation operations operation-name)]
-     (-> {:schema    analyzed-schema
-          :variables variables}
-         (resolve-fragments fragments)
-         (resolve-operation operation)))))
+  "Canonicalize a validated GraphQL document based on the given analyzed
+   schema."
+  [analyzed-schema document & args]
+  (apply (canonicalizer analyzed-schema) document  args))
