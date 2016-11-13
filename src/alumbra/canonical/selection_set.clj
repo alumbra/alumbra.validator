@@ -7,7 +7,7 @@
 
 ;; ## Helpers
 
-(defn- field-key
+(defn- field-alias
   [{:keys [alumbra/field-alias
            alumbra/field-name]}]
   (or field-alias field-name))
@@ -86,7 +86,8 @@
   [opts field]
   (let [field-type (field-type-of opts field)]
     (merge
-      {:field-name (:alumbra/field-name field)}
+      {:field-name (:alumbra/field-name field)
+       :field-alias (field-alias field)}
       (data-for-directives opts field-type field)
       (data-for-arguments opts field-type field)
       (if (leaf? field)
