@@ -106,4 +106,6 @@
 
   clojure.lang.IPersistentMap
   (analyze-schema [m]
-    (analyze-schema-with-introspection m)))
+    (if (:type->kind m)
+      m
+      (analyze-schema-with-introspection m))))
