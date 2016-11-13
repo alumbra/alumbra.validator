@@ -11,9 +11,9 @@
         (reduce
           (fn [result {:keys [alumbra/directive-name
                               alumbra/directive-locations
-                              alumbra/type-field-arguments] :as x}]
+                              alumbra/argument-definitions] :as x}]
             (assoc result
                    directive-name
                    {:directive-locations (set directive-locations)
-                    :arguments (read-arguments type-field-arguments)}))
+                    :arguments (read-arguments argument-definitions)}))
           {}))})

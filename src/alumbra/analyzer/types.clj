@@ -13,10 +13,10 @@
   (reduce
     (fn [data {:keys [alumbra/field-name
                       alumbra/type
-                      alumbra/type-field-arguments]}]
+                      alumbra/argument-definitions]}]
       (->> {:field-name field-name
             :containing-type-name type-name
-            :arguments (read-arguments type-field-arguments)}
+            :arguments (read-arguments argument-definitions)}
            (merge (describe-type type))
            (assoc-in data [:fields field-name])))
     data fields))
@@ -27,12 +27,12 @@
   [data {:keys [alumbra/interface-definitions]}]
   (reduce
     (fn [data {:keys [alumbra/type-name
-                      alumbra/type-fields]
+                      alumbra/field-definitions]
                :as interface}]
       (->> {:implemented-by #{}
             :fields         (default-type-fields type-name)
             :type-name      type-name}
-           (add-type-fields type-name type-fields)
+           (add-type-fields type-name field-definitions)
            (assoc-in data  [:interfaces type-name])))
     data interface-definitions))
 
@@ -61,12 +61,12 @@
   [data {:keys [alumbra/type-definitions]}]
   (reduce
     (fn [data {:keys [alumbra/type-name
-                      alumbra/type-fields
+                      alumbra/field-definitions
                       alumbra/interface-types]}]
       (->> {:implements #{}
             :fields     (default-type-fields type-name)
             :type-name  type-name}
-           (add-type-fields type-name type-fields)
+           (add-type-fields type-name field-definitions)
            (assoc-in data [:types type-name])
            (add-implements type-name interface-types)))
     data type-definitions))
@@ -77,12 +77,12 @@
   [data {:keys [alumbra/type-extensions]}]
   (reduce
     (fn [data {:keys [alumbra/type-name
-                      alumbra/type-fields
+                      alumbra/field-definitions
                       alumbra/interface-types]}]
       (if (get-in data [:types type-name])
         (-> data
             (update-in [:types type-name]
-                       #(add-type-fields type-name type-fields %))
+                       #(add-type-fields type-name field-definitions %))
             (->> (add-implements type-name interface-types)))
         data))
     data type-extensions))
@@ -93,12 +93,12 @@
   [data {:keys [alumbra/input-type-definitions]}]
   (reduce
     (fn [data {:keys [alumbra/type-name
-                      alumbra/input-type-fields
+                      alumbra/input-field-definitions
                       alumbra/interface-types]}]
       (->> {:implements #{}
             :fields     {}
             :type-name  type-name}
-           (add-type-fields type-name input-type-fields)
+           (add-type-fields type-name input-field-definitions)
            (assoc-in data [:input-types type-name])))
     data input-type-definitions))
 
