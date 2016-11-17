@@ -11,7 +11,29 @@ A validator for GraphQL ASTs as produced by [alumbra.parser][parser], based on
 
 ## Usage
 
-TODO
+```clojure
+(require '[alumbra.validator :as v])
+```
+
+A validator is based upon an [analyzed GraphQL schema][alumbra-analyzer] and
+can be created as follows:
+
+```clojure
+(def validate-document
+  (v/validator analyzed-schema))
+```
+
+The validator function can be called with a value conforming to
+`:alumbra/document` and will return either `nil` (if the GraphQL query
+is valid) or a map with `:alumbra/validation-errors`.
+
+[alumbra-analyzer]: https://github.com/alumbra/alumbra.analyzer
+
+## Issues
+
+Issue tracking for alumbra is centralized at [alumbra/alumbra][issues].
+
+[issues]: https://github.com/alumbra/alumbra/issues
 
 ## License
 
