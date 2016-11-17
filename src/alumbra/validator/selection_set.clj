@@ -47,7 +47,7 @@
 
 (defn- add-operation-scope-type
   [{:keys [schema-root]} {:keys [alumbra/operation-type] :as data}]
-  (if-let [t (get schema-root operation-type)]
+  (if-let [t (get-in schema-root [:schema-root-types operation-type])]
     (assoc data :validator/scope-type t)
     data))
 

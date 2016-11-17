@@ -11,7 +11,7 @@
 
 (defn invariant
   [{:keys [schema-root]}]
-  (let [allowed-type? (set (keys schema-root))]
+  (let [allowed-type? (set (keys (:schema-root-types schema-root)))]
     (-> (invariant/on [ALL])
         (invariant/each
           (with-operation-context
