@@ -12,5 +12,5 @@
                                   [alumbra/spec "0.1.0-SNAPSHOT"]
                                   [alumbra/analyzer "0.1.0-SNAPSHOT"]
                                   [alumbra/parser "0.1.0-SNAPSHOT"]
-                                  [alumbra/generators "0.1.1-SNAPSHOT"]]}}
+                                  [alumbra/generators "0.1.1"]]}}
   :pedantic? :abort)
