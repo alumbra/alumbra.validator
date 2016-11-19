@@ -6,11 +6,11 @@
             :year 2016
             :key "mit"}
   :dependencies [[org.clojure/clojure "1.9.0-alpha14" :scope "provided"]
+                 [alumbra/spec "0.1.0" :scope "provided"]
                  [com.stuartsierra/dependency "0.2.0"]
                  [invariant "0.1.0"]]
   :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]
-                                  [alumbra/spec "0.1.0-SNAPSHOT"]
-                                  [alumbra/analyzer "0.1.0-SNAPSHOT"]
-                                  [alumbra/parser "0.1.0-SNAPSHOT"]
+                                  [alumbra/analyzer "0.1.0"]
+                                  [alumbra/parser "0.1.0"]
                                   [alumbra/generators "0.1.1"]]}}
   :pedantic? :abort)

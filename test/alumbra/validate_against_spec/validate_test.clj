@@ -10,8 +10,8 @@
 ;; ## Fixtures
 
 (def schema
-  (->> (io/resource "alumbra/validate_against_spec/ValidationSchema.graphql")
-       (analyzer/analyze-schema ql/parse-schema)))
+  (-> (io/resource "alumbra/validate_against_spec/ValidationSchema.graphql")
+      (analyzer/analyze-schema ql/parse-schema)))
 
 (def validate!*
   (comp (validator schema)
