@@ -48,11 +48,6 @@ schema {
   query: QueryRoot
 }
 
-# Directives (FIXME: add to some kind of base schema)
-
-directive @include on FIELD
-directive @skip on FIELD
-
 # Extensions from Section 5.2.3
 
 extend type QueryRoot {

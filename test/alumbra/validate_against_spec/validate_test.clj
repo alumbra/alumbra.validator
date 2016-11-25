@@ -29,9 +29,11 @@
   `(let [~'errors (~f ~query)]
      (is (= ~(set expected)
             (set (map :alumbra/validation-error-class ~'errors)))
-         (str "  errors: " (pr-str ~'errors)))
+         (str "   query: " (pr-str ~query) "\n"
+              "  errors: " (pr-str ~'errors)))
      (when (seq ~'errors)
-       (is (s/valid? :alumbra/validation-errors ~'errors)))))
+       (is (s/valid? :alumbra/validation-errors ~'errors)
+           (str "   query: " (pr-str ~query))))))
 
 (defmacro testing-errors*
   [f & body]
