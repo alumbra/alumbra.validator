@@ -78,7 +78,7 @@ extend type QueryRoot {
 
 # Extensions from Section 5.7.3
 
-input ComplexInput { name: String, owner: String }
+input ComplexInput { name: String, owner: String, child: ComplexInput }
 
 extend type QueryRoot {
   findDog(complex: ComplexInput): Dog

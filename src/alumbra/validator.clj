@@ -8,6 +8,7 @@
              [fragments :as fragments]
              [operations :as operations]
              [selection-set :as selection-set]
+             [values :as values]
              [variables :as variables]]
             [invariant.core :as invariant]))
 
@@ -20,6 +21,7 @@
      fields/builder
      fragments/builder
      operations/builder
+     values/builder
      variables/builder]
     schema))
 

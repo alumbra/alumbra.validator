@@ -349,7 +349,15 @@
 
 ;; ### 5.5.1 Input Object Field Uniqueness
 
-;; TODO
+(deftest t-input-object-field-uniqueness
+  (testing-errors
+    #{}
+    "{ findDog(complex:{name: \"Doggo\"}) { nickname } }"
+    "{ findDog(complex:{child:{name: \"Doggo\"}}) { nickname } }"
+
+    #{:input/field-name-unique}
+    "{ findDog(complex:{name: \"Doggo\", name: \"Snoop\"}) { nickname } }"
+    "{ findDog(complex:{child:{name: \"Doggo\", name: \"Snoop\"}}) { nickname } }"))
 
 ;; ### 5.6.1 Directives Are Defined
 
