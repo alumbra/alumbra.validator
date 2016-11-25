@@ -64,7 +64,7 @@
     #{:operation/name-unique
       :operation/allowed}
     "query getDogName { dog { name } }
-     mutation getDogName { mutateDog { id } }"))
+     subscription getDogName { mutateDog { id } }"))
 
 ;; ### 5.1.2 Lone Anonymous Operation
 
@@ -372,7 +372,21 @@
 
 ;; ### 5.6.2 Directives Are In Valid Locations
 
-;; TODO
+(deftest t-directives-are-in-valid-locations
+  (testing-errors
+    #{}
+    "{ dog { name @skip(if: false) } }"
+    "{ dog { ... on Dog @skip(if: false) { name } } }"
+    "mutation @unordered { callDog(name: \"Doggo\") { nickname } }"
+    "{ dog { ... X @skip(if: false)} }
+     fragment X on Dog { name }"
+
+    #{:directive/location-valid}
+    "query @skip(if: $foo) { dog { name } }"
+    "query @unordered { dog { name } }"
+    "{ dog { ... on Dog @deprecated { name } } }"
+    "{ dog { ... X } }
+     fragment X on Dog @skip(if: false) { name }"))
 
 ;; ### 5.6.3 Directives Are Unique Per Location
 
