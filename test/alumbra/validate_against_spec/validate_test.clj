@@ -462,6 +462,10 @@
      fragment isHousetrainedFragment on Dog {
      isHousetrained(atOtherHomes: $atOtherHomes)
      }"
+    "query ($bool: Boolean!) {
+     arguments { booleanListArgField(booleanListArg: [$bool]) }
+     }"
+
     #{:variable/must-be-used}
     "query variableUnused($atOtherHomes: Boolean) { dog { isHousetrained } }"
     "query variableNotUsedWithinFragment($atOtherHomes: Boolean) {

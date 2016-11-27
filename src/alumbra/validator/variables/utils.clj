@@ -5,13 +5,25 @@
 
 ;; ## Paths
 
+(def ^:private value-path
+  (recursive-path
+    []
+    p
+    (cond-path
+      (comp #{:variable} :alumbra/value-type)
+      [(must :alumbra/variable-name) (putval :variable)]
+
+      (comp #{:list} :alumbra/value-type)
+      [(must :alumbra/list) ALL p]
+
+      (comp #{:object} :alumbra/value-type)
+      [(must :alumbra/object) ALL (must :alumbra/value) p])))
+
 (def ^:private variable-arguments-path
   [(must :alumbra/arguments)
    ALL
    (must :alumbra/argument-value)
-   #(= :variable (:alumbra/value-type %))
-   :alumbra/variable-name
-   (putval :variable)])
+   value-path])
 
 (def ^:private named-fragment-path
   [(must :alumbra/fragment-name) (putval :fragment)])
