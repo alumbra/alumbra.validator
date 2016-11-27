@@ -12,6 +12,6 @@
 
 (def invariant
   (constantly
-    (-> (invariant/on [ALL])
+    (-> (invariant/on [:alumbra/fragments ALL])
         (invariant/unique :fragment/name-unique
                           {:unique-by :alumbra/fragment-name}))))

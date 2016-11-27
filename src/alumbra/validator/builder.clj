@@ -1,7 +1,9 @@
 (ns alumbra.validator.builder
   (:require [alumbra.validator.selection-set :as selection-set]
+            [alumbra.validator.errors :as errors]
             [invariant.potemkin :refer [defprotocol+]]
-            [invariant.core :as invariant]))
+            [invariant.core :as invariant]
+            [com.rpl.specter :as specter]))
 
 ;; ## Builder Maps
 ;;
@@ -79,14 +81,20 @@
 (defn- make-fragment-invariant
   [schema builders]
   (let [inv (make-invariant schema :fragments builders)]
-    (-> (invariant/on [:alumbra/fragments])
-        (invariant/is? inv))))
+    (-> (invariant/on [:alumbra/fragments specter/ALL])
+        (invariant/each
+          (errors/with-fragment-context inv)))))
 
 (defn- make-operation-invariant
   [schema builders]
   (let [inv (make-invariant schema :operations builders)]
-    (-> (invariant/on [:alumbra/operations])
-        (invariant/is? inv))))
+    (-> (invariant/on [:alumbra/operations specter/ALL])
+        (invariant/each
+          (errors/with-operation-context inv)))))
+
+(defn- make-root-invariant
+  [schema builders]
+  (make-invariant schema :root builders))
 
 ;; ## Build Function
 
@@ -95,6 +103,7 @@
   (-> (initialize-invariant builders)
       (invariant/is?
         (invariant/and
+          (make-root-invariant schema builders)
           (make-selection-set-invariant schema builders)
           (make-fragment-invariant schema builders)
           (make-operation-invariant schema builders)))))

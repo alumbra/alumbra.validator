@@ -19,10 +19,11 @@
    [fragment-spread-type-in-scope/named-spread-invariant]
    :operations
    [fragment-spread-target-existence/invariant]
-   :fragments
+   :root
    [fragment-name-uniqueness/invariant
-    fragment-spreads-acyclic/invariant
-    fragments-must-be-used/invariant
+    fragment-spreads-acyclic/invariant]
+   :fragments
+   [fragments-must-be-used/invariant
     fragment-spread-target-existence/invariant
     fragment-on-composite-type/invariant
     fragment-spread-type-existence/invariant]

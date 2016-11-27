@@ -26,6 +26,4 @@
 
 (defn invariant
   [schema]
-  (-> (invariant/on [ALL])
-      (invariant/each
-        (make-invariant schema))))
+  (make-invariant schema))

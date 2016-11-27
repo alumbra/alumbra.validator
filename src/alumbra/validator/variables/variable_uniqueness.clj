@@ -15,9 +15,6 @@
 
 (def invariant
   (constantly
-    (-> (invariant/on [ALL])
-        (invariant/each
-          (with-operation-context
-            (-> (invariant/on [:alumbra/variables ALL])
-                (invariant/unique :variable/name-unique
-                                  {:unique-by :alumbra/variable-name})))))))
+    (-> (invariant/on [:alumbra/variables ALL])
+        (invariant/unique :variable/name-unique
+                          {:unique-by :alumbra/variable-name}))))

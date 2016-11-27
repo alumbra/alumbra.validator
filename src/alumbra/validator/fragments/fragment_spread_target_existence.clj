@@ -20,7 +20,7 @@
 
 (def invariant
   (constantly
-    (-> (invariant/on [ALL u/all-named-fragments])
+    (-> (invariant/on [u/all-named-fragments])
         (invariant/each
           (with-fragment-context
             (invariant/property

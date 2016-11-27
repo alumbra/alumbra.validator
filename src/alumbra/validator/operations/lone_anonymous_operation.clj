@@ -11,7 +11,7 @@
 
 (def invariant
   (constantly
-    (-> (invariant/on-current-value)
+    (-> (invariant/on [:alumbra/operations])
         (invariant/count-as :operations [ALL])
         (invariant/count-as
           :anonymous-operations

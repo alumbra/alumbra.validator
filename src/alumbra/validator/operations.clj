@@ -6,7 +6,8 @@
             [invariant.core :as invariant]))
 
 (def builder
-  {:operations
+  {:root
    [lone-anonymous-operation/invariant
-    operation-name-uniqueness/invariant
-    operation-allowed/invariant]})
+    operation-name-uniqueness/invariant]
+   :operations
+   [operation-allowed/invariant]})

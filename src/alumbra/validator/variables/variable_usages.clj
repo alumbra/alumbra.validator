@@ -44,10 +44,7 @@
 
 (def operation-invariant
   (constantly
-    (-> (invariant/on [ALL])
-        (invariant/each
-          (with-operation-context
-            (-> (invariant/as ::operation-name
-                              (comp :alumbra/operation-name first))
-                (invariant/on [:alumbra/variables ALL])
-                (invariant/each variable-used?)))))))
+    (-> (invariant/as ::operation-name
+                      (comp :alumbra/operation-name first))
+        (invariant/on [:alumbra/variables ALL])
+        (invariant/each variable-used?))))
