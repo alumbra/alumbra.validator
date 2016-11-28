@@ -61,23 +61,26 @@
                                      :provided-variables])]
         (contains? provided variable-name)))))
 
+(defn- non-providing-operations
+  [{:keys [root-fragment-name ::usages]}
+   {:keys [alumbra/variable-name]}]
+  (get-in usages
+          [:fragments
+           (first root-fragment-name)
+           :unprovided-variables
+           variable-name]
+          #{}))
+
+(defn- fragment-variable-defined?*
+  [state variable]
+  (empty? (non-providing-operations state variable)))
+
 (def ^:private fragment-variable-defined?
-  (-> (invariant/property
-        :variable/exists
-        (fn [{:keys [root-fragment-name ::usages]}
-             {:keys [alumbra/variable-name]}]
-          (let [unprovided (get-in usages [:fragments
-                                           (first root-fragment-name)
-                                           :unprovided-variables])]
-            (not (contains? unprovided variable-name)))))
+  (-> (invariant/property :variable/exists fragment-variable-defined?*)
       (invariant/with-error-context
-        (fn [{:keys [root-fragment-name ::usages]}
-             {:keys [alumbra/variable-name]}]
-          (let [unprovided (get-in usages [:fragments
-                                           (first root-fragment-name)
-                                           :unprovided-variables
-                                           variable-name])]
-            {:alumbra/operation-names unprovided})))))
+        (fn [state variable]
+          {:alumbra/operation-names
+           (non-providing-operations state variable)}))))
 
 (def ^:private variable-defined?
   (with-variable-context
