@@ -3,6 +3,7 @@
              [field :as field]
              [inline-spread :as inline-spread]
              [named-spread :as named-spread]]
+            [alumbra.validator.errors :as errors]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -71,7 +72,13 @@
     (invariant/and
       (-> (invariant/on [:alumbra/operations ALL])
           (invariant/fmap #(add-operation-scope-type schema %))
-          (invariant/each inv))
+          (invariant/each
+            (-> (invariant/collect-as :root-operation-name [:alumbra/operation-name])
+                (invariant/is? inv)
+                (errors/with-operation-context))))
       (-> (invariant/on [:alumbra/fragments ALL])
           (invariant/fmap #(add-fragment-scope-type %))
-          (invariant/each inv)))))
+          (invariant/each
+            (-> (invariant/collect-as :root-fragment-name [:alumbra/fragment-name])
+                (invariant/is? inv)
+                (errors/with-fragment-context)))))))
