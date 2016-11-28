@@ -1,8 +1,12 @@
 (ns alumbra.validate-against-spec.validate-test
   (:require [clojure.test :refer :all]
+            [clojure.test.check
+             [clojure-test :refer [defspec]]
+             [properties :as prop]]
             [alumbra.validator :refer [validator]]
             [alumbra.analyzer :as analyzer]
             [alumbra.parser :as ql]
+            [alumbra.generators :as alumbra-gen]
             [alumbra.spec]
             [clojure.spec :as s]
             [clojure.java.io :as io]))
@@ -46,6 +50,14 @@
 (defmacro testing-errors
   [& body]
   `(testing-errors* validate! ~@body))
+
+;; ## Generative Tests
+
+(defspec t-valid-queries-pass-validation 1000
+  (let [gen-operation (alumbra-gen/operation schema)]
+    (prop/for-all
+      [query (gen-operation :query)]
+      (nil? (validate!* query)))))
 
 ;; ## Tests
 
