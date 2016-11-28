@@ -449,7 +449,30 @@
 
 ;; ### 5.7.4 All Variable Uses Defined
 
-;; TODO
+(deftest t-variable-uses-defined
+  (testing-errors
+    #{}
+    "query variableIsDefined($atOtherHomes: Boolean) {
+     dog { isHousetrained(atOtherHomes: $atOtherHomes) }
+     }"
+    "query variableIsDefinedUsedInSingleFragment($atOtherHomes: Boolean) {
+     dog { ...isHousetrainedFragment }
+     }
+     fragment isHousetrainedFragment on Dog { isHousetrained(atOtherHomes: $atOtherHomes) }"
+    "query housetrainedQueryOne($atOtherHomes: Boolean) { dog { ...isHousetrainedFragment } }
+     query housetrainedQueryTwo($atOtherHomes: Boolean) { dog { ...isHousetrainedFragment } }
+     fragment isHousetrainedFragment on Dog { isHousetrained(atOtherHomes: $atOtherHomes) }"
+
+    #{:variable/exists}
+    "query variableIsNotDefined { dog { isHousetrained(atOtherHomes: $atOtherHomes) } }"
+    "query variableIsNotDefinedUsedInSingleFragment { dog { ...isHousetrainedFragment } }
+     fragment isHousetrainedFragment on Dog { isHousetrained(atOtherHomes: $atOtherHomes) }"
+    "query variableIsNotDefinedUsedInNestedFragment { dog { ...outerHousetrainedFragment } }
+     fragment outerHousetrainedFragment on Dog { ...isHousetrainedFragment }
+     fragment isHousetrainedFragment on Dog { isHousetrained(atOtherHomes: $atOtherHomes) }"
+    "query housetrainedQueryOne($atOtherHomes: Boolean) { dog { ...isHousetrainedFragment } }
+     query housetrainedQueryTwoNotDefined { dog { ...isHousetrainedFragment } }
+     fragment isHousetrainedFragment on Dog { isHousetrained(atOtherHomes: $atOtherHomes) }"))
 
 ;; ### 5.7.5 All Variables Used
 

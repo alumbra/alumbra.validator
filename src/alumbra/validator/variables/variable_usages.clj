@@ -48,3 +48,59 @@
                       (comp :alumbra/operation-name first))
         (invariant/on [:alumbra/variables ALL])
         (invariant/each variable-used?))))
+
+;; ### Fields
+
+(def ^:private operation-variable-defined?
+  (invariant/property
+    :variable/exists
+    (fn [{:keys [root-operation-name ::usages]}
+         {:keys [alumbra/variable-name]}]
+      (let [provided (get-in usages [:operations
+                                     (first root-operation-name)
+                                     :provided-variables])]
+        (contains? provided variable-name)))))
+
+(def ^:private fragment-variable-defined?
+  (-> (invariant/property
+        :variable/exists
+        (fn [{:keys [root-fragment-name ::usages]}
+             {:keys [alumbra/variable-name]}]
+          (let [unprovided (get-in usages [:fragments
+                                           (first root-fragment-name)
+                                           :unprovided-variables])]
+            (not (contains? unprovided variable-name)))))
+      (invariant/with-error-context
+        (fn [{:keys [root-fragment-name ::usages]}
+             {:keys [alumbra/variable-name]}]
+          (let [unprovided (get-in usages [:fragments
+                                           (first root-fragment-name)
+                                           :unprovided-variables
+                                           variable-name])]
+            {:alumbra/operation-names unprovided})))))
+
+(def ^:private variable-defined?
+  (with-variable-context
+    (invariant/bind
+      (fn [state _]
+        (cond (contains? state :root-operation-name)
+              operation-variable-defined?
+              (contains? state :root-fragment-name)
+              fragment-variable-defined?
+              :else nil)))))
+
+(def ^:private argument-variable-path
+  [(must :alumbra/arguments)
+   ALL
+   (must :alumbra/argument-value)
+   u/variable-value-path])
+
+(def ^:private nested-variable-path
+  (multi-path
+    argument-variable-path
+    [(must :alumbra/directives) ALL argument-variable-path]))
+
+(defn invariant
+  [_ field]
+  (-> (invariant/on [nested-variable-path])
+      (invariant/each variable-defined?)))

@@ -6,6 +6,8 @@
 
 (def builder
   {:state variable-usages/state
+   :fields
+   [variable-usages/invariant]
    :operations
    [variable-uniqueness/invariant
     variable-usages/operation-invariant
