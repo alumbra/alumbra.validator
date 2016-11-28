@@ -11,6 +11,8 @@
 
 (def invariant
   (constantly
-    (-> (invariant/on [ALL #(contains? % :alumbra/operation-name)])
+    (-> (invariant/on [:alumbra/operations
+                       ALL
+                       #(contains? % :alumbra/operation-name)])
         (invariant/unique :operation/name-unique
                           {:unique-by :alumbra/operation-name}))))

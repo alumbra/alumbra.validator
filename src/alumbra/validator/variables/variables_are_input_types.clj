@@ -33,18 +33,15 @@
 
 (defn invariant
   [schema]
-  (-> (invariant/on [ALL])
+  (-> (invariant/on [:alumbra/variables ALL])
       (invariant/each
-        (with-operation-context
-          (-> (invariant/on [:alumbra/variables ALL])
-              (invariant/each
-                (-> (invariant/value
-                      :variable/input-type
-                      (fn [variable]
-                        (contains?
-                          #{:input-type :scalar :enum}
-                          (kind-of-type schema variable))))
-                    (invariant/with-error-context
-                      (fn [_ {:keys [alumbra/type]}]
-                        {:alumbra/variable-type-name (read-type-name type)}))
-                    (with-variable-context))))))))
+        (-> (invariant/value
+              :variable/input-type
+              (fn [variable]
+                (contains?
+                  #{:input-type :scalar :enum}
+                  (kind-of-type schema variable))))
+            (invariant/with-error-context
+              (fn [_ {:keys [alumbra/type]}]
+                {:alumbra/variable-type-name (read-type-name type)}))
+            (with-variable-context)))))

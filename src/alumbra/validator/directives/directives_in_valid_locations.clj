@@ -35,10 +35,7 @@
 
 (defn fragment-invariant
   [schema & _]
-  (-> (invariant/on [ALL])
-      (invariant/each
-        (with-fragment-context
-          (make-invariant schema :fragment-definition)))))
+  (make-invariant schema :fragment-definition))
 
 (defn operation-invariant
   [schema & _]
@@ -46,8 +43,6 @@
         (->> ["query" "mutation" "subscription"]
              (map (juxt identity #(make-invariant schema (keyword %))))
              (into {}))]
-    (-> (invariant/on [ALL])
-        (invariant/each
-          (invariant/bind
-            (fn [_ {:keys [alumbra/operation-type]}]
-              (operation-type->invariant operation-type)))))))
+    (invariant/bind
+      (fn [_ {:keys [alumbra/operation-type]}]
+        (operation-type->invariant operation-type)))))

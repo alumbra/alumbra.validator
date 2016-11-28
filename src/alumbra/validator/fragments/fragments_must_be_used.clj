@@ -21,11 +21,8 @@
 
 (def invariant
   (constantly
-    (-> (invariant/on [ALL])
-      (invariant/each
-        (with-fragment-context
-          (invariant/property
-            :fragment/must-be-used
-            (fn [{:keys [::used-fragments]}
-                 {:keys [alumbra/fragment-name]}]
-              (contains? used-fragments fragment-name))))))))
+    (invariant/property
+      :fragment/must-be-used
+      (fn [{:keys [::used-fragments]}
+           {:keys [alumbra/fragment-name]}]
+        (contains? used-fragments fragment-name)))))
