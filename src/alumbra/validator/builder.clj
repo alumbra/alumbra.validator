@@ -79,18 +79,28 @@
       schema)))
 
 (defn- make-fragment-invariant
-  [schema builders]
+  [schema builders {:keys [selection-set]}]
   (let [inv (make-invariant schema :fragments builders)]
     (-> (invariant/on [:alumbra/fragments specter/ALL])
         (invariant/each
-          (errors/with-fragment-context inv)))))
+          (-> (invariant/first-as :current-fragment [:alumbra/fragment-name])
+              (invariant/is?
+                (errors/with-fragment-context
+                  (invariant/and
+                    selection-set
+                    inv))))))))
 
 (defn- make-operation-invariant
-  [schema builders]
+  [schema builders {:keys [selection-set]}]
   (let [inv (make-invariant schema :operations builders)]
     (-> (invariant/on [:alumbra/operations specter/ALL])
         (invariant/each
-          (errors/with-operation-context inv)))))
+          (-> (invariant/first-as :current-operation [:alumbra/operation-name])
+              (invariant/is?
+                (errors/with-operation-context
+                  (invariant/and
+                    inv
+                    selection-set))))))))
 
 (defn- make-root-invariant
   [schema builders]
@@ -98,12 +108,19 @@
 
 ;; ## Build Function
 
+(defn- add-selection-set-invariant
+  [invs schema builders]
+  (assoc invs
+         :selection-set
+         (make-selection-set-invariant schema builders)))
+
 (defn build
   [builders schema]
-  (-> (initialize-invariant builders)
-      (invariant/is?
-        (invariant/and
-          (make-root-invariant schema builders)
-          (make-selection-set-invariant schema builders)
-          (make-fragment-invariant schema builders)
-          (make-operation-invariant schema builders)))))
+  (let [invs (-> {}
+                 (add-selection-set-invariant schema builders))]
+    (-> (initialize-invariant builders)
+        (invariant/is?
+          (invariant/and
+            (make-root-invariant schema builders)
+            (make-fragment-invariant schema builders invs)
+            (make-operation-invariant schema builders invs))))))

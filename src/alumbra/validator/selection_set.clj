@@ -46,17 +46,21 @@
 
 ;; ## Invariant
 
-(defn- add-operation-scope-type
-  [{:keys [schema-root]} {:keys [alumbra/operation-type] :as data}]
-  (if-let [t (get-in schema-root [:schema-root-types operation-type])]
-    (assoc data :validator/scope-type t)
-    data))
+(defn- add-initial-scope-type
+  [{:keys [schema-root]}
+   {:keys [alumbra/operation-type
+           alumbra/type-condition] :as data}]
+  (cond operation-type
+        (if-let [t (get-in schema-root [:schema-root-types operation-type])]
+          (assoc data :validator/scope-type t)
+          data)
 
-(defn- add-fragment-scope-type
-  [{:keys [alumbra/type-condition] :as data}]
-  (if-let [t (:alumbra/type-name type-condition)]
-    (assoc data :validator/scope-type t)
-    data))
+        type-condition
+        (if-let [t (:alumbra/type-name type-condition)]
+          (assoc data :validator/scope-type t)
+          data)
+
+        :else data))
 
 (defn invariant
   "Generate a recursive invariant on selection sets, enforcing the invariants
@@ -69,16 +73,6 @@
    "
   [child-invariants schema]
   (let [inv (selection-set-valid? schema child-invariants)]
-    (invariant/and
-      (-> (invariant/on [:alumbra/operations ALL])
-          (invariant/fmap #(add-operation-scope-type schema %))
-          (invariant/each
-            (-> (invariant/collect-as :root-operation-name [:alumbra/operation-name])
-                (invariant/is? inv)
-                (errors/with-operation-context))))
-      (-> (invariant/on [:alumbra/fragments ALL])
-          (invariant/fmap #(add-fragment-scope-type %))
-          (invariant/each
-            (-> (invariant/collect-as :root-fragment-name [:alumbra/fragment-name])
-                (invariant/is? inv)
-                (errors/with-fragment-context)))))))
+    (-> (invariant/on-current-value)
+        (invariant/fmap #(add-initial-scope-type schema %))
+        (invariant/is? inv))))

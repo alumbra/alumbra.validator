@@ -54,19 +54,19 @@
 (def ^:private operation-variable-defined?
   (invariant/property
     :variable/exists
-    (fn [{:keys [root-operation-name ::usages]}
+    (fn [{:keys [current-operation ::usages]}
          {:keys [alumbra/variable-name]}]
       (let [provided (get-in usages [:operations
-                                     (first root-operation-name)
+                                     current-operation
                                      :provided-variables])]
         (contains? provided variable-name)))))
 
 (defn- non-providing-operations
-  [{:keys [root-fragment-name ::usages]}
+  [{:keys [current-fragment ::usages]}
    {:keys [alumbra/variable-name]}]
   (get-in usages
           [:fragments
-           (first root-fragment-name)
+           current-fragment
            :unprovided-variables
            variable-name]
           #{}))
@@ -86,9 +86,9 @@
   (with-variable-context
     (invariant/bind
       (fn [state _]
-        (cond (contains? state :root-operation-name)
+        (cond (contains? state :current-operation)
               operation-variable-defined?
-              (contains? state :root-fragment-name)
+              (contains? state :current-fragment)
               fragment-variable-defined?
               :else nil)))))
 
