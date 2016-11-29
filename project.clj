@@ -8,7 +8,7 @@
   :dependencies [[org.clojure/clojure "1.9.0-alpha14" :scope "provided"]
                  [alumbra/spec "0.1.2" :scope "provided"]
                  [com.stuartsierra/dependency "0.2.0"]
-                 [invariant "0.1.0"]]
+                 [invariant "0.1.1"]]
   :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]
                                   [alumbra/analyzer "0.1.2"]
                                   [alumbra/parser "0.1.2"]
