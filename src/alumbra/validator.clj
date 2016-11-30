@@ -1,35 +1,16 @@
 (ns alumbra.validator
   (:require [alumbra.validator
-             [arguments :as arguments]
-             [builder :as builder]
-             [directives :as directives]
-             [errors :as errors]
-             [fields :as fields]
-             [fragments :as fragments]
-             [operations :as operations]
-             [selection-set :as selection-set]
-             [values :as values]
-             [variables :as variables]]
+             [document :as document]
+             [errors :as errors]]
             [invariant.core :as invariant]))
 
-(defn- generate-invariant
-  "Generate an AST invariant based on the given schema."
-  [schema]
-  (builder/build
-    [arguments/builder
-     directives/builder
-     fields/builder
-     fragments/builder
-     operations/builder
-     values/builder
-     variables/builder]
-    schema))
+;; ## Query Document Validation
 
 (defn validator
   "Generate a function that will validate a GraphQL AST conforming to the spec
    `:alumbra/document`, based on the given `:alumbra/analyzed-schema`."
   [schema]
-  (let [invariant (generate-invariant schema)]
+  (let [invariant (document/invariant schema)]
     (fn validate-graphql-document
       ([ast]
        (validate-graphql-document ast nil {}))
