@@ -10,10 +10,10 @@
 ;; ## Recursive Selection Set Traversal
 
 (defn- make-selection-set-invariant
-  [type {:keys [fields inline-spreads named-spreads]} self]
-  (let [field-invariant         (field/make-invariant type fields self)
-        named-spread-invariant  (named-spread/make-invariant type named-spreads self)
-        inline-spread-invariant (inline-spread/make-invariant type inline-spreads self)]
+  [type invs self]
+  (let [field-invariant         (field/make-invariant type invs self)
+        named-spread-invariant  (named-spread/make-invariant type invs self)
+        inline-spread-invariant (inline-spread/make-invariant type invs self)]
     (-> (invariant/on [:alumbra/selection-set ALL])
         (invariant/each
           (invariant/bind

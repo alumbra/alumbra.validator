@@ -1,7 +1,7 @@
 (ns alumbra.validator.document.builder
-  (:require [alumbra.validator.document.selection-set :as selection-set]
-            [alumbra.validator.document.context :as errors]
-            [invariant.potemkin :refer [defprotocol+]]
+  (:require [alumbra.validator.document
+             [context :as context]
+             [selection-set :as selection-set]]
             [invariant.core :as invariant]
             [com.rpl.specter :as specter]))
 
@@ -85,7 +85,7 @@
         (invariant/each
           (-> (invariant/first-as :current-fragment [:alumbra/fragment-name])
               (invariant/is?
-                (errors/with-fragment-context
+                (context/with-fragment-context
                   (invariant/and
                     selection-set
                     inv))))))))
@@ -97,7 +97,7 @@
         (invariant/each
           (-> (invariant/first-as :current-operation [:alumbra/operation-name])
               (invariant/is?
-                (errors/with-operation-context
+                (context/with-operation-context
                   (invariant/and
                     inv
                     selection-set))))))))

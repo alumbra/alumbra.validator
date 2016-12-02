@@ -10,12 +10,12 @@
     data))
 
 (defn make-invariant
-  [type invariant-fn self]
+  [type {:keys [fields]} self]
   (-> (invariant/on-current-value)
       (invariant/fmap #(add-scope-type type %))
       (invariant/is?
         (invariant/and
-          (when invariant-fn
+          (when fields
             (with-field-context type
-              (invariant-fn type)))
+              (fields type)))
           self))))

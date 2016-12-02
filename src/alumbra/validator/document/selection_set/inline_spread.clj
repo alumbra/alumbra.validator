@@ -8,11 +8,11 @@
          (:alumbra/type-name type-condition)))
 
 (defn make-invariant
-  [type invariant-fn self]
+  [type {:keys [inline-spreads]} self]
   (-> (invariant/on-current-value)
       (invariant/fmap add-scope-type)
       (invariant/is?
         (invariant/and
-          (when invariant-fn
-            (invariant-fn type))
+          (when inline-spreads
+            (inline-spreads type))
           self))))

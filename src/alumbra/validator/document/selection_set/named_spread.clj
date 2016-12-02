@@ -8,6 +8,6 @@
          (:alumbra/type-name type-condition)))
 
 (defn make-invariant
-  [type invariant-fn self]
-  (when invariant-fn
-    (invariant-fn type)))
+  [type {:keys [named-spreads]} self]
+  (when named-spreads
+    (named-spreads type)))
