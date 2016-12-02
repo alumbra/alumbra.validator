@@ -18,10 +18,10 @@
 (defn- scalar-invariant
   "Scalar values have to be strings, integers, floats or booleans – with
    user-defined scalar validation TBD."
-  [scalar-type-name]
+  [scalar-type-name k]
   (with-value-context
     (invariant/value
-      :value/type-correct
+      k
       (comp
         (case scalar-type-name
           "String"  #{:string}
@@ -33,26 +33,26 @@
         :alumbra/value-type))))
 
 (defn- scalar-invariants
-  [{:keys [scalars]} self]
+  [k {:keys [scalars]} self]
   (->> (for [t (keys scalars)]
-         [t (scalar-invariant t)])
+         [t (scalar-invariant t k)])
        (into {})))
 
 ;; ## Enums
 
 (defn- enum-invariant
-  [enum-type-name enum-values]
+  [enum-type-name k enum-values]
   (with-value-context
-    (invariant/property
-      :value/type-correct
-      (fn [_ {:keys [alumbra/value-type alumbra/enum]}]
+    (invariant/value
+      k
+      (fn [{:keys [alumbra/value-type alumbra/enum]}]
         (and (= value-type :enum)
              (contains? enum-values enum))))))
 
 (defn- enum-invariants
-  [{:keys [enums]} self]
+  [k {:keys [enums]} self]
   (->> (for [[t {:keys [enum-values]}] enums]
-         [t (enum-invariant t enum-values)])
+         [t (enum-invariant t k enum-values)])
        (into {})))
 
 ;; ## Input Objects
@@ -116,10 +116,9 @@
 ;; ### Combined Invariant
 
 (defn- input-invariant
-  [input-type self]
+  [input-type k self]
   (let [fields-invariant (fields-invariant input-type self)
-        failed           (with-value-context
-                           (invariant/fail :value/type-correct))]
+        failed           (with-value-context (invariant/fail k))]
     (invariant/bind
       (fn [_ {:keys [alumbra/value-type]}]
         (if (= value-type :object)
@@ -127,16 +126,16 @@
           failed)))))
 
 (defn- input-invariants
-  [{:keys [input-types]} self]
+  [k {:keys [input-types]} self]
   (->> (for [[t input-type] input-types]
-         [t (input-invariant input-type self)])
+         [t (input-invariant input-type k self)])
        (into {})))
 
 ;; ## Recursive Invariant
 
 (defn- make-non-null-invariant
-  [self]
-  (let [failed (with-value-context (invariant/fail :value/type-nullable))]
+  [k self]
+  (let [failed (with-value-context (invariant/fail k))]
     (invariant/bind
       (fn [_ {:keys [alumbra/value-type ::expected] :as value}]
         (if (= value-type :null)
@@ -147,8 +146,8 @@
               (invariant/is? self)))))))
 
 (defn- make-list-invariant
-  [self]
-  (let [failed (with-value-context (invariant/fail :value/type-correct))]
+  [k self]
+  (let [failed (with-value-context (invariant/fail k))]
     (invariant/bind
       (fn [_ {:keys [alumbra/value-type ::expected] :as value}]
         (if (not= value-type :list)
@@ -162,15 +161,15 @@
   "Generate an invariant that operates on a GraphQL value, expecting
    `::expected` (an `:alumbra/type-description`) to be present. It will verify
    that the value matches the type."
-  [schema]
+  [k schema]
   (invariant/recursive
     [self]
     (let [type->invariant (merge
-                            (scalar-invariants schema self)
-                            (enum-invariants schema self)
-                            (input-invariants schema self))
-          non-null-invariant (make-non-null-invariant self)
-          list-invariant     (make-list-invariant self)]
+                            (scalar-invariants k schema self)
+                            (enum-invariants k schema self)
+                            (input-invariants k schema self))
+          non-null-invariant (make-non-null-invariant k self)
+          list-invariant     (make-list-invariant k self)]
       (invariant/bind
         (fn [_ {:keys [alumbra/value-type ::expected]}]
           (when-let [{:keys [non-null? type-description type-name]} expected]
@@ -184,9 +183,11 @@
 (defn invariant-constructor
   "Generate a function that, for a given `:alumbra/type-description`, produces
    an invariant verifying a GraphQL value matches the type."
-  [schema]
-  (let [inv (invariant schema)]
-    (fn [expected-type-description]
-      (-> (invariant/on-current-value)
-          (invariant/fmap #(assoc % ::expected expected-type-description))
-          (invariant/is? inv)))))
+  ([schema]
+   (invariant-constructor :value/type-correct schema))
+  ([k schema]
+   (let [inv (invariant k schema)]
+     (fn [expected-type-description]
+       (-> (invariant/on-current-value)
+           (invariant/fmap #(assoc % ::expected expected-type-description))
+           (invariant/is? inv))))))

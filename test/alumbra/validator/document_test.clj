@@ -179,12 +179,9 @@
     "{ booleanList(booleanListArg: [true, 1]) }"
     "fragment stringIntoInt on Arguments { intArgField(intArg: \"3\") }"
     "fragment invalidDirectiveArg on Dog { name @skip(if: 5) }"
-    #{:value/type-nullable}
     "{ booleanList(booleanListArg: [true, null]) }"
     "fragment invalidNull on Arguments { nonNullBooleanArgField(nonNullBooleanArg: null) }"
     "fragment invalidNullDirectiveArg on Dog { name @skip(if: null) }"))
-
-(t-argument-type-correctness)
 
 ;; ### 5.3.3.2 Required Non-Null Arguments
 
