@@ -168,13 +168,19 @@
 (deftest t-argument-type-correctness
   (testing-errors
     #{}
+    "{ booleanList(booleanListArg: [true, false]) }"
+    "{ booleanList(booleanListArg: []) }"
+    "{ booleanList(booleanListArg: null) }"
     "fragment goodBooleanArg on Arguments { booleanArgField(booleanArg: true) }"
     "fragment coercedIntIntoFloatArg on Arguments { floatArgField(floatArg: 1) }"
     "fragment intIntoFloat on Arguments { floatArgField(floatArg: 3) }"
+    "fragment nullableIntArg on Arguments { intArgField(intArg: null) }"
     #{:value/type-correct}
+    "{ booleanList(booleanListArg: [true, 1]) }"
     "fragment stringIntoInt on Arguments { intArgField(intArg: \"3\") }"
     "fragment invalidDirectiveArg on Dog { name @skip(if: 5) }"
     #{:value/type-nullable}
+    "{ booleanList(booleanListArg: [true, null]) }"
     "fragment invalidNull on Arguments { nonNullBooleanArgField(nonNullBooleanArg: null) }"
     "fragment invalidNullDirectiveArg on Dog { name @skip(if: null) }"))
 
