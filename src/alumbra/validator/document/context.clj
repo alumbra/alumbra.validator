@@ -48,5 +48,10 @@
   [invariant]
   (invariant/with-error-context
     invariant
-    (fn [_ var]
-      (select-keys var [:alumbra/variable-name]))))
+    (fn [{:keys [variables/types current-operation]}
+         {:keys [alumbra/variable-name] :as var}]
+      (merge
+        (select-keys var [:alumbra/variable-name])
+        (when current-operation
+          (when-let [desc (get-in types [current-operation variable-name])]
+            {:alumbra/type-description desc}))))))
