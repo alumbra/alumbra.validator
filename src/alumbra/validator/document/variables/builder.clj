@@ -1,11 +1,13 @@
 (ns alumbra.validator.document.variables.builder
   (:require [alumbra.validator.document.variables
+             [state :as state]
              [variable-uniqueness :as variable-uniqueness]
              [variable-usages :as variable-usages]
              [variables-are-input-types :as variables-are-input-types]]))
 
 (def builder
-  {:state variable-usages/state
+  {:state
+   state/state
    :fields
    [variable-usages/invariant]
    :operations

@@ -1,5 +1,7 @@
 (ns alumbra.validator.document.variables.variable-usages
-  (:require [alumbra.validator.document.variables.utils :as u]
+  (:require [alumbra.validator.document.variables
+             [state :as state]
+             [utils :as u]]
             [alumbra.validator.document.context
              :refer [with-variable-context
                      with-operation-context]]
@@ -22,13 +24,8 @@
 ;; - Each `variable` in `variables` must be used at least once in either the
 ;;   operation scope itself or any fragment transitively referenced by that
 ;;   operation.
+
 ;; ## Invariant
-
-;; ### State
-
-(defn state
-  [invariant]
-  (invariant/as invariant ::usages (comp u/analyze-variables first)))
 
 ;; ### Operations
 
@@ -36,7 +33,7 @@
   (with-variable-context
     (invariant/property
       :variable/must-be-used
-      (fn [{:keys [::usages current-operation]}
+      (fn [{:keys [variables/usages current-operation]}
            {:keys [alumbra/variable-name]}]
         (not (contains?
                (get-in usages [:operations current-operation :unused-variables])
@@ -52,7 +49,7 @@
 (def ^:private operation-variable-defined?
   (invariant/property
     :variable/exists
-    (fn [{:keys [current-operation ::usages]}
+    (fn [{:keys [current-operation variables/usages]}
          {:keys [alumbra/variable-name]}]
       (let [provided (get-in usages [:operations
                                      current-operation
@@ -60,7 +57,7 @@
         (contains? provided variable-name)))))
 
 (defn- non-providing-operations
-  [{:keys [current-fragment ::usages]}
+  [{:keys [current-fragment variables/usages]}
    {:keys [alumbra/variable-name]}]
   (get-in usages
           [:fragments
