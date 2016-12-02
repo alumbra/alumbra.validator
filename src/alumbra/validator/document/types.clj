@@ -3,6 +3,15 @@
             [com.rpl.specter :refer :all]
             [clojure.set :as set]))
 
+;; ## Helper
+
+(defn with-value-context
+  [invariant]
+  (invariant/with-error-context
+    invariant
+    (fn [_ {:keys [::expected] :as value}]
+      {:alumbra/value value
+       :alumbra/type-description expected})))
 
 ;; ## Scalars
 
@@ -10,17 +19,18 @@
   "Scalar values have to be strings, integers, floats or booleans – with
    user-defined scalar validation TBD."
   [scalar-type-name]
-  (invariant/value
-    :value/type-correct
-    (comp
-      (case scalar-type-name
-        "String"  #{:string}
-        "ID"      #{:string :integer}
-        "Integer" #{:integer}
-        "Float"   #{:float :integer}
-        "Boolean" #{:boolean}
-        #{:string :integer :float :boolean})
-      :alumbra/value-type)))
+  (with-value-context
+    (invariant/value
+      :value/type-correct
+      (comp
+        (case scalar-type-name
+          "String"  #{:string}
+          "ID"      #{:string :integer}
+          "Int"     #{:integer}
+          "Float"   #{:float :integer}
+          "Boolean" #{:boolean}
+          #{:string :integer :float :boolean})
+        :alumbra/value-type))))
 
 (defn- scalar-invariants
   [{:keys [scalars]} self]
@@ -32,11 +42,12 @@
 
 (defn- enum-invariant
   [enum-type-name enum-values]
-  (invariant/property
-    :value/type-correct
-    (fn [_ {:keys [alumbra/value-type alumbra/enum]}]
-      (and (= value-type :enum)
-           (contains? enum-values enum)))))
+  (with-value-context
+    (invariant/property
+      :value/type-correct
+      (fn [_ {:keys [alumbra/value-type alumbra/enum]}]
+        (and (= value-type :enum)
+             (contains? enum-values enum))))))
 
 (defn- enum-invariants
   [{:keys [enums]} self]
@@ -61,14 +72,14 @@
   [{:keys [type-name] :as input-type}]
   (let [required-fields (collect-required-fields input-type)]
     (-> (invariant/value
-          :value/required-fields-given
+          :input/required-fields-given
           (fn [{:keys [alumbra/object]}]
             (let [given-fields (set (map :alumbra/field-name object))]
               (empty? (set/difference required-fields given-fields)))))
         (invariant/with-error-context
           (fn [_ {:keys [alumbra/field-name]}]
-            {:alumbra/containing-type-name type-name
-             :alumbra/required-field-names required-fields})))))
+            {:alumbra/input-type-name            type-name
+             :alumbra/required-input-field-names required-fields})))))
 
 ;; ### Field is known
 
@@ -81,9 +92,9 @@
             (contains? known-fields field-name)))
         (invariant/with-error-context
           (fn [_ {:keys [alumbra/field-name]}]
-            {:alumbra/field-name           field-name
-             :alumbra/containing-type-name type-name
-             :alumbra/valid-field-names    known-fields})))))
+            {:alumbra/field-name              field-name
+             :alumbra/input-type-name         type-name
+             :alumbra/valid-input-field-names known-fields})))))
 
 ;; ### Fields match expected Types
 
@@ -107,7 +118,8 @@
 (defn- input-invariant
   [input-type self]
   (let [fields-invariant (fields-invariant input-type self)
-        failed           (invariant/fail :value/type-correct)]
+        failed           (with-value-context
+                           (invariant/fail :value/type-correct))]
     (invariant/bind
       (fn [_ {:keys [alumbra/value-type]}]
         (if (= value-type :object)
@@ -124,25 +136,27 @@
 
 (defn- make-non-null-invariant
   [self]
-  (invariant/bind
-    (fn [_ {:keys [alumbra/value-type] :as value}]
-      (if (= value-type :null)
-        (invariant/fail :value/type-nullable)
-        (-> (invariant/on-current-value)
-            (invariant/fmap
-              #(assoc-in % [::expected :non-null?] false))
-            (invariant/is? self))))))
+  (let [failed (with-value-context (invariant/fail :value/type-nullable))]
+    (invariant/bind
+      (fn [_ {:keys [alumbra/value-type ::expected] :as value}]
+        (if (= value-type :null)
+          failed
+          (-> (invariant/on-current-value)
+              (invariant/fmap
+                #(assoc-in % [::expected :non-null?] false))
+              (invariant/is? self)))))))
 
 (defn- make-list-invariant
   [self]
-  (invariant/bind
-    (fn [_ {:keys [alumbra/value-type ::expected]}]
-      (if (not= value-type :list)
-        (invariant/fail :value/type-correct)
-        (let [{:keys [type-description]} expected]
-          (-> (invariant/on [:alumbra/list ALL])
-              (invariant/fmap #(assoc % ::expected type-description))
-              (invariant/is? self)))))))
+  (let [failed (with-value-context (invariant/fail :value/type-correct))]
+    (invariant/bind
+      (fn [_ {:keys [alumbra/value-type ::expected] :as value}]
+        (if (not= value-type :list)
+          failed
+          (let [{:keys [type-description]} expected]
+            (-> (invariant/on [:alumbra/list ALL])
+                (invariant/fmap #(assoc % ::expected type-description))
+                (invariant/each self))))))))
 
 (defn invariant
   "Generate an invariant that operates on a GraphQL value, expecting
@@ -159,13 +173,13 @@
           list-invariant     (make-list-invariant self)]
       (invariant/bind
         (fn [_ {:keys [alumbra/value-type ::expected]}]
-          (let [{:keys [non-null? type-description type-name]} expected]
+          (when-let [{:keys [non-null? type-description type-name]} expected]
             ;; TODO: use state to check for type of variables.
             (if-not (= value-type :variable)
               (cond non-null?            non-null-invariant
                     (= value-type :null) nil
-                    type-name           (type->invariant type-name)
-                    :else               list-invariant))))))))
+                    type-name            (type->invariant type-name)
+                    :else                list-invariant))))))))
 
 (defn invariant-constructor
   "Generate a function that, for a given `:alumbra/type-description`, produces
