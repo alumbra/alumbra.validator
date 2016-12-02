@@ -1,7 +1,8 @@
 (ns alumbra.validator.document.arguments.arguments-valid
   (:require [alumbra.validator.document
-             [context :refer [with-argument-context]]
-             [selection-set :as selection-set]]
+             [context :refer [with-argument-context
+                              with-directive-context]]
+             [types :as types]]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -31,29 +32,21 @@
 ;; ## Predicates
 
 (defn- valid-argument-name?
-  [{:keys [arguments]}]
+  [arguments]
   (comp (set (keys arguments)) :alumbra/argument-name))
 
 (defn- collect-required-arguments
-  [{:keys [arguments]}]
+  [arguments]
   (->> (vals arguments)
        (filter :non-null?)
        (map :argument-name)
        (set)))
 
-(defn- argument-nullable?
-  [field]
-  (let [required-argument? (collect-required-arguments field)]
-    (fn [{:keys [alumbra/argument-name
-                 alumbra/argument-value]}]
-      (or (not (required-argument? argument-name))
-          (not= (:alumbra/value-type argument-value) :null)))))
-
 ;; ## Argument Invariants
 
 (defn- required-arguments-invariant
-  [field]
-  (let [required-arguments (collect-required-arguments field)
+  [arguments]
+  (let [required-arguments (collect-required-arguments arguments)
         find-missing (fn [{:keys [alumbra/arguments]}]
                        (->> (map :alumbra/argument-name arguments)
                             (reduce disj required-arguments)))]
@@ -66,38 +59,57 @@
          (find-missing value)}))))
 
 (defn- argument-name-in-scope-invariant
-  [field]
+  [arguments]
   (invariant/value
     :argument/name-in-scope
-    (valid-argument-name? field)))
+    (valid-argument-name? arguments)))
 
-(defn- argument-nullable-invariant
-  [field]
-  (invariant/value
-    :validator/argument-nullable
-    (argument-nullable? field)))
+(defn- argument-type-invariant
+  [type-constructor arguments]
+  (let [argument-name->invariant
+        (->> (for [[argument-name {:keys [type-description]}]
+                   arguments]
+               [argument-name
+                (-> (invariant/on [:alumbra/argument-value])
+                    (invariant/is?
+                      (type-constructor type-description)))])
+             (into {}))]
+    (invariant/bind
+      (fn [_ {:keys [alumbra/argument-name]}]
+        (argument-name->invariant argument-name)))))
 
-(defn- field-arguments-invariant
-  [field]
-  (-> (invariant/on-current-value)
-      (invariant/is?
-        (invariant/and
-          (required-arguments-invariant field)
-          (-> (invariant/on [:alumbra/arguments ALL])
-              (invariant/each
-                (with-argument-context
-                  (invariant/and
-                    (argument-name-in-scope-invariant field)
-                    (argument-nullable-invariant field)))))))))
+(defn- arguments-invariant
+  [type-constructor {:keys [arguments]}]
+  (invariant/and
+    (required-arguments-invariant arguments)
+    (-> (invariant/on [:alumbra/arguments ALL])
+        (invariant/each
+          (with-argument-context
+            (invariant/and
+              (argument-name-in-scope-invariant arguments)
+              (argument-type-invariant type-constructor arguments)))))))
 
 ;; ## Combined Invariant
 
 (defn invariant
-  [_ {:keys [fields]}]
-  (let [field->invariant
+  [{:keys [directives] :as schema} {:keys [fields]}]
+  (let [type-constructor
+        (types/invariant-constructor schema)
+        field->invariant
         (->> (for [[field-name type] fields]
-               [field-name (field-arguments-invariant type)])
+               [field-name (arguments-invariant type-constructor type)])
+             (into {}))
+        directive->invariant
+        (->> (for [[directive-name directive] directives]
+               [directive-name (arguments-invariant type-constructor directive)])
              (into {}))]
-    (invariant/bind
-      (fn [_ {:keys [alumbra/field-name]}]
-        (field->invariant field-name)))))
+    (invariant/and
+      (invariant/bind
+        (fn [_ {:keys [alumbra/field-name]}]
+          (field->invariant field-name)))
+      (-> (invariant/on [:alumbra/directives ALL])
+          (invariant/each
+            (with-directive-context
+              (invariant/bind
+                (fn [_ {:keys [alumbra/directive-name]}]
+                  (directive->invariant directive-name)))))))))

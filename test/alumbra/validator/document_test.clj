@@ -150,10 +150,9 @@
     "fragment invalidArgName on Dog {
      doesKnowCommand(dogCommand: SIT, command: CLEAN_UP_HOUSE)
      }"
-    ;; TODO: Directive Definitions?
-    #_"fragment invalidArgName on Dog {
-       isHousetrained (atOtherHomes: true) @include (unless: false)
-       }"))
+    "fragment invalidArgName on Dog {
+     isHousetrained (atOtherHomes: true) @include (if: true, unless: false)
+     }"))
 
 ;; ### 5.3.2 Argument Uniqueness
 
@@ -164,9 +163,22 @@
      doesKnowCommand(dogCommand: SIT, dogCommand: HEEL)
      }"))
 
-;; ### 5.3.3.1 Argument Type Uniqueness
+;; ### 5.3.3.1 Argument Type Correctness
 
-;; TODO
+(deftest t-argument-type-correctness
+  (testing-errors
+    #{}
+    "fragment goodBooleanArg on Arguments { booleanArgField(booleanArg: true) }"
+    "fragment coercedIntIntoFloatArg on Arguments { floatArgField(floatArg: 1) }"
+    "fragment intIntoFloat on Arguments { floatArgField(floatArg: 3) }"
+    #{:value/type-correct}
+    "fragment stringIntoInt on Arguments { intArgField(intArg: \"3\") }"
+    "fragment invalidDirectiveArg on Dog { name @skip(if: 5) }"
+    #{:value/type-nullable}
+    "fragment invalidNull on Arguments { nonNullBooleanArgField(nonNullBooleanArg: null) }"
+    "fragment invalidNullDirectiveArg on Dog { name @skip(if: null) }"))
+
+(t-argument-type-correctness)
 
 ;; ### 5.3.3.2 Required Non-Null Arguments
 
@@ -186,13 +198,8 @@
      }"
 
     #{:argument/required-given}
-    "fragment missingRequiredArg on Arguments {
-     nonNullBooleanArgField
-     }"
-    ;; TODO: Null Literal Handling
-    #_"fragment missingRequiredArg on Arguments {
-       notNullBooleanArgField(nonNullBooleanArg: null)
-       }"))
+    "fragment missingRequiredArg on Arguments { nonNullBooleanArgField }"
+    "fragment missingDirectiveArg on Dog { name @skip }"))
 
 ;; ### 5.4.1.1 Fragment Name Uniqueness
 
@@ -367,11 +374,21 @@
   (testing-errors
     #{}
     "{ findDog(complex:{name: \"Doggo\"}) { nickname } }"
-    "{ findDog(complex:{child:{name: \"Doggo\"}}) { nickname } }"
+    "{ findDog(complex:{child:{name: \"Doggo\"}, name: \"Pupper\"}) { nickname } }"
 
     #{:input/field-name-unique}
     "{ findDog(complex:{name: \"Doggo\", name: \"Snoop\"}) { nickname } }"
-    "{ findDog(complex:{child:{name: \"Doggo\", name: \"Snoop\"}}) { nickname } }"))
+    "{ findDog(complex:{child:{name: \"Doggo\", name: \"Snoop\"}, name: \"Pupper\"}) { nickname } }"))
+
+(deftest t-input-object-field-exists
+  (testing-errors
+    #{:input/field-name-in-scope}
+    "{ findDog(complex:{name: \"Doggo\", unknown: 1}) { nickname } }"))
+
+(deftest t-input-object-required-fields-given
+  (testing-errors
+    #{:input/required-fields-given}
+    "{ findDog(complex:{}) { nickname } }"))
 
 ;; ### 5.6.1 Directives Are Defined
 
