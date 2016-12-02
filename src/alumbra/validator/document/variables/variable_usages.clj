@@ -36,17 +36,15 @@
   (with-variable-context
     (invariant/property
       :variable/must-be-used
-      (fn [{:keys [::usages ::operation-name]}
+      (fn [{:keys [::usages current-operation]}
            {:keys [alumbra/variable-name]}]
         (not (contains?
-               (get-in usages [:operations operation-name :unused-variables])
+               (get-in usages [:operations current-operation :unused-variables])
                variable-name))))))
 
 (def operation-invariant
   (constantly
-    (-> (invariant/as ::operation-name
-                      (comp :alumbra/operation-name first))
-        (invariant/on [:alumbra/variables ALL])
+    (-> (invariant/on [:alumbra/variables ALL])
         (invariant/each variable-used?))))
 
 ;; ### Fields
