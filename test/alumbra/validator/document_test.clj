@@ -457,7 +457,26 @@
 
 ;; ### 5.7.2 Variable Default Values are Correctly Typed
 
-;; TODO
+(deftest t-variable-default-values-are-correctly-typed
+  (testing-errors
+    #{}
+    "query houseTrainedQuery($atOtherHomes: Boolean = true) {
+     dog { isHousetrained(atOtherHomes: $atOtherHomes) }
+     }"
+    "query intToFloatQuery($floatVar: Float = 1) {
+     arguments { floatArgField(floatArg: $floatVar) }
+     }"
+    "query ($bools: [Boolean!] = [true, true]) {
+     booleanList(booleanListArg: $bools)
+     }"
+
+    #{:variable/default-value-correct}
+    "query houseTrainedQuery($atOtherHomes: Boolean! = true) {
+     dog { isHousetrained(atOtherHomes: $atOtherHomes) }
+     }"
+    "query houseTrainedQuery($atOtherHomes: Boolean = \"true\") {
+     dog { isHousetrained(atOtherHomes: $atOtherHomes) }
+     }"))
 
 ;; ### 5.7.3 Variables are Input Types
 
