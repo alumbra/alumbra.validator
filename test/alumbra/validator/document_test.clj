@@ -552,7 +552,29 @@
 
 ;; ### 5.7.6 All Variable Usages Allowed
 
-;; TODO
+(deftest t-all-variable-usages-are-allowed
+  (testing-errors
+    #{}
+    "query nonNullListToList($nonNullBooleanList: [Boolean]!) {
+     arguments { booleanListArgField(booleanListArg: $nonNullBooleanList) }
+     }"
+    "query booleanArgQueryWithDefault($booleanArg: Boolean = true) {
+     arguments { nonNullBooleanArgField(nonNullBooleanArg: $booleanArg) }
+     }"
+
+    #{:value/type-correct}
+    "query intCannotGoIntoBoolean($intArg: Int) {
+     arguments { booleanArgField(booleanArg: $intArg) }
+     }"
+    "query booleanListCannotGoIntoBoolean($booleanListArg: [Boolean]) {
+     arguments { booleanArgField(booleanArg: $booleanListArg) }
+     }"
+    "query booleanArgQuery($booleanArg: Boolean) {
+     arguments { nonNullBooleanArgField(nonNullBooleanArg: $booleanArg) }
+     }"
+    "query listToNonNullList($booleanList: [Boolean]) {
+     arguments { nonNullBooleanListArgField(nonNullBooleanListArg: $booleanList) }
+     }"))
 
 ;; ## Introspection Tests
 

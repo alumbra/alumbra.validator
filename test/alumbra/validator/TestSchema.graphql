@@ -70,6 +70,7 @@ type Arguments {
   intArgField(intArg: Int): Int
   nonNullBooleanArgField(nonNullBooleanArg: Boolean!): Boolean!
   booleanListArgField(booleanListArg: [Boolean]!): [Boolean]
+  nonNullBooleanListArgField(nonNullBooleanListArg: [Boolean]!): [Boolean]
 }
 
 extend type QueryRoot {
