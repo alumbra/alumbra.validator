@@ -23,10 +23,12 @@
      (collect-one :alumbra/operation-name)
      :alumbra/variables
      ALL
-     (collect-one :alumbra/variable-name)
-     (collect-one :alumbra/type)]
-    (fn [result [operation-name variable-name type]]
-      (assoc-in result
-                [operation-name variable-name]
-                (as-type-description type)))
+     (collect-one)]
+    (fn [result
+         [operation-name {:keys [alumbra/variable-name
+                                 alumbra/type
+                                 alumbra/default-value]}]]
+      (->> (as-type-description type)
+           (merge {:default-value default-value})
+           (assoc-in result [operation-name variable-name])))
     {}))

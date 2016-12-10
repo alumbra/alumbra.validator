@@ -1,5 +1,8 @@
 (ns alumbra.validator.document.types
-  (:require [invariant.core :as invariant]
+  (:require [alumbra.validator.document
+             [context :refer [with-variable-context]]
+             [state :as state]]
+            [invariant.core :as invariant]
             [com.rpl.specter :refer :all]
             [clojure.set :as set]))
 
@@ -131,7 +134,38 @@
          [t (input-invariant input-type k self)])
        (into {})))
 
-;; ## Recursive Invariant
+;; ## Variable Invariant
+
+(defn- matches-type?
+  [{variable-non-null?    :non-null?
+    variable-element-type :type-description
+    variable-type-name    :type-name
+    default-value         :default-value}
+   {:keys [non-null? type-description type-name]}]
+  (and (or (not non-null?)
+           variable-non-null?
+           default-value)
+       (cond type-name
+             (= variable-type-name type-name)
+
+             (and type-description variable-element-type)
+             (recur variable-element-type type-description)
+
+             :else false)))
+
+(defn- make-variable-invariant
+  [k self]
+  (with-value-context
+    (invariant/property
+      k
+      (fn [state {:keys [alumbra/variable-name ::expected]}]
+        (let [variable-type (state/variable-type state variable-name)]
+          (or (not variable-type)
+              (matches-type? variable-type expected)))))))
+
+;; ## Compound Value Invariant
+
+;; ### Non-Null
 
 (defn- make-non-null-invariant
   [k self]
@@ -145,6 +179,8 @@
                 #(assoc-in % [::expected :non-null?] false))
               (invariant/is? self)))))))
 
+;; ### List
+
 (defn- make-list-invariant
   [k self]
   (let [failed (with-value-context (invariant/fail k))]
@@ -157,6 +193,8 @@
                 (invariant/fmap #(assoc % ::expected type-description))
                 (invariant/each self))))))))
 
+;; ### Full Invariant
+
 (defn invariant
   "Generate an invariant that operates on a GraphQL value, expecting
    `::expected` (an `:alumbra/type-description`) to be present. It will verify
@@ -168,17 +206,18 @@
                             (scalar-invariants k schema self)
                             (enum-invariants k schema self)
                             (input-invariants k schema self))
+          variable-invariant (make-variable-invariant k self)
           non-null-invariant (make-non-null-invariant k self)
           list-invariant     (make-list-invariant k self)]
       (invariant/bind
         (fn [_ {:keys [alumbra/value-type ::expected]}]
           (when-let [{:keys [non-null? type-description type-name]} expected]
-            ;; TODO: use state to check for type of variables.
             (if-not (= value-type :variable)
               (cond non-null?            non-null-invariant
                     (= value-type :null) nil
                     type-name            (type->invariant type-name)
-                    :else                list-invariant))))))))
+                    :else                list-invariant)
+              variable-invariant)))))))
 
 (defn invariant-constructor
   "Generate a function that, for a given `:alumbra/type-description`, produces
