@@ -15,20 +15,12 @@
     fragment-spread-type-in-scope/inline-spread-invariant
     fragment-on-composite-type/inline-spread-invariant]
    :named-spreads
-   [fragment-spread-type-in-scope/named-spread-invariant]
-   :operations
-   [fragment-spread-target-existence/invariant]
+   [fragment-spread-type-in-scope/named-spread-invariant
+    fragment-spread-target-existence/invariant]
    :root
    [fragment-name-uniqueness/invariant
     fragment-spreads-acyclic/invariant]
    :fragments
    [fragments-must-be-used/invariant
-    fragment-spread-target-existence/invariant
     fragment-on-composite-type/invariant
-    fragment-spread-type-existence/invariant]
-   :state
-   (fn [invariant]
-     (-> invariant
-         (fragments-must-be-used/state)
-         (fragment-spread-type-in-scope/state)
-         (fragment-spread-target-existence/state)))})
+    fragment-spread-type-existence/invariant]})

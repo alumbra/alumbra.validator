@@ -1,26 +1,14 @@
-(ns alumbra.validator.document.variables.utils
-  (:require [clojure.set :as set]
+(ns alumbra.validator.document.state.analysis
+  (:require [alumbra.validator.document.paths :as paths]
+            [invariant.core :as invariant]
+            [clojure.set :as set]
             [com.stuartsierra.dependency :as dep]
             [com.rpl.specter :refer :all]))
 
 ;; ## Paths
 
-(def variable-value-path
-  (recursive-path
-    []
-    p
-    (cond-path
-      (comp #{:variable} :alumbra/value-type)
-      STAY
-
-      (comp #{:list} :alumbra/value-type)
-      [(must :alumbra/list) ALL p]
-
-      (comp #{:object} :alumbra/value-type)
-      [(must :alumbra/object) ALL (must :alumbra/value) p])))
-
 (def ^:private variable-name-path
-  [variable-value-path
+  [paths/variable-values
    (must :alumbra/variable-name)
    (putval :variable)])
 
@@ -118,12 +106,9 @@
 
 (defn- analyze-operation
   [graph node]
-  (let [provided (->> (dep/immediate-dependents graph node)
-                      (filter-by-tag :provided second))
-        used     (->> (dep/transitive-dependencies graph node)
-                      (filter-by-tag :variable))]
-    {:provided-variables provided
-     :unused-variables   (set/difference provided used)}))
+  (let [dependencies (dep/transitive-dependencies graph node)]
+    {:used-variables (filter-by-tag :variable dependencies)
+     :used-fragments (filter-by-tag :fragment dependencies)}))
 
 (defn- analyze-operations
   [graph nodes]
@@ -134,38 +119,13 @@
 
 ;; ### Fragments
 
-(defn- operations-using-fragment
-  [dependents]
-  (filter-by-tag :operation dependents))
-
-(defn- group-provided-variables
-  [dependents]
-  (->> (filter-by-tag :provided dependents)
-       (reduce
-         (fn [result [o v]]
-           (update result v (fnil conj #{}) o))
-         {})))
-
-(defn- find-unprovided-variables
-  [dependencies dependents]
-  (let [operations  (operations-using-fragment dependents)
-        provided-by (group-provided-variables dependents)]
-    (->> (filter-by-tag :variable dependencies)
-         (reduce
-           (fn [result v]
-             (let [unprovided-by (set/difference operations
-                                                 (set (provided-by v)))]
-               (if (empty? unprovided-by)
-                 result
-                 (assoc result v unprovided-by))))
-           {}))))
-
 (defn- analyze-fragment
   [graph node]
   (let [dependents   (dep/transitive-dependents graph node)
-        dependencies (dep/immediate-dependencies graph node)
-        unprovided   (find-unprovided-variables dependencies dependents)]
-    {:unprovided-variables unprovided}))
+        dependencies (dep/immediate-dependencies graph node)]
+    {:used-by-operations (filter-by-tag :operation dependents)
+     :used-variables     (filter-by-tag :variable dependencies)
+     :used-fragments     (filter-by-tag :fragment dependencies)}))
 
 (defn- analyze-fragments
   [graph nodes]
@@ -174,14 +134,25 @@
       (assoc result n (analyze-fragment graph node)))
     {} nodes))
 
-;; ### Variables
+;; ### Invariant
 
-(defn analyze-variables
-  "Generate a map describing variable usage inconsistencies, i.e. unused and
-   unprovided variables."
+(defn- analyze
+  "Generate a map describing relationships between fragments, operations and
+   variables."
   [doc]
   (let [graph (-> (build-fragment-graph doc)
                   (build-operation-graph doc))
         {:keys [fragment operation]} (group-by first (dep/nodes graph))]
     {:fragments  (analyze-fragments graph fragment)
      :operations (analyze-operations graph operation)}))
+
+(defn initialize
+  [invariant]
+  (-> invariant
+      (invariant/compute-as ::data  #(analyze (first %2)))
+      (invariant/compute-as ::by-operation
+                            (fn [{:keys [::data]} _]
+                              (get data :operations)))
+      (invariant/compute-as ::by-fragment
+                            (fn [{:keys [::data]} _]
+                              (get data :fragments)))))

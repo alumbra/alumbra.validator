@@ -1,5 +1,6 @@
 (ns alumbra.validator.document.context
-  (:require [invariant.core :as invariant]))
+  (:require [alumbra.validator.document.state :as state]
+            [invariant.core :as invariant]))
 
 (defn with-field-context
   [{:keys [type-name fields]} invariant]
@@ -48,10 +49,8 @@
   [invariant]
   (invariant/with-error-context
     invariant
-    (fn [{:keys [variables/types current-operation]}
-         {:keys [alumbra/variable-name] :as var}]
+    (fn [state {:keys [alumbra/variable-name] :as var}]
       (merge
         (select-keys var [:alumbra/variable-name])
-        (when current-operation
-          (when-let [desc (get-in types [current-operation variable-name])]
-            {:alumbra/type-description desc}))))))
+        (when-let [t (state/variable-type state variable-name)]
+          {:alumbra/type-description t})))))

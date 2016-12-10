@@ -1,7 +1,7 @@
 (ns alumbra.validator.document.fragments.fragment-spread-target-existence
-  (:require [alumbra.validator.document.fragments.utils :as u]
-            [alumbra.validator.document.context
+  (:require [alumbra.validator.document.context
              :refer [with-fragment-context]]
+            [alumbra.validator.document.state :as state]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -11,20 +11,10 @@
 ;; - Let `fragment` be the target of `namedSpread`
 ;;   - `fragment` must be defined in the document
 
-(defn state
-  [invariant]
-  (invariant/collect-as
-    invariant
-    ::known-fragments
-    [:alumbra/fragments ALL (must :alumbra/fragment-name)]))
-
 (def invariant
   (constantly
-    (-> (invariant/on [u/all-named-fragments])
-        (invariant/each
-          (with-fragment-context
-            (invariant/property
-              :fragment/target-exists
-              (fn [{:keys [::known-fragments]}
-                   {:keys [alumbra/fragment-name]}]
-                (contains? known-fragments fragment-name))))))))
+    (with-fragment-context
+      (invariant/property
+        :fragment/target-exists
+        (fn [state {:keys [alumbra/fragment-name]}]
+          (state/fragment-known? state fragment-name))))))

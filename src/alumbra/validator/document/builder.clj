@@ -1,7 +1,8 @@
 (ns alumbra.validator.document.builder
   (:require [alumbra.validator.document
              [context :as context]
-             [selection-set :as selection-set]]
+             [selection-set :as selection-set]
+             [state :as state]]
             [invariant.core :as invariant]
             [com.rpl.specter :as specter]))
 
@@ -20,10 +21,6 @@
 ;; - `:fields`: to be run on [* :alumbra/field]
 ;; - `:inline-spreads`: to be run on [* :alumbra/inline-spread]
 ;; - `:named-spreads`: to be run on [* :alumbra/fragment-spread]
-;;
-;; Additionally, the following keys are allowed:
-;;
-;; - `:state`: a function attaching state to the invariant.
 
 ;; ## Builder Helpers
 
@@ -60,14 +57,9 @@
 ;; ## Invariant Builders
 
 (defn- initialize-invariant
-  [builders]
-  (reduce
-    (fn [invariant {:keys [state]}]
-      (if state
-        (state invariant)
-        invariant))
-    (invariant/on-current-value)
-    builders))
+  [_]
+  (-> (invariant/on-current-value)
+      (state/initialize)))
 
 (defn- make-selection-set-invariant
   [schema builders]
@@ -83,7 +75,7 @@
   (let [inv (make-invariant schema :fragments builders)]
     (-> (invariant/on [:alumbra/fragments specter/ALL])
         (invariant/each
-          (-> (invariant/first-as :current-fragment [:alumbra/fragment-name])
+          (-> (state/prepare-fragment)
               (invariant/is?
                 (context/with-fragment-context
                   (invariant/and
@@ -95,7 +87,7 @@
   (let [inv (make-invariant schema :operations builders)]
     (-> (invariant/on [:alumbra/operations specter/ALL])
         (invariant/each
-          (-> (invariant/first-as :current-operation [:alumbra/operation-name])
+          (-> (state/prepare-operation)
               (invariant/is?
                 (context/with-operation-context
                   (invariant/and

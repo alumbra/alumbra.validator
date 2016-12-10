@@ -1,5 +1,5 @@
 (ns alumbra.validator.document.fragments.fragment-spreads-acyclic
-  (:require [alumbra.validator.document.fragments.utils :as u]
+  (:require [alumbra.validator.document.paths :as paths]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
 
@@ -18,12 +18,28 @@
 ;;   - Let `nextFragmentDefinition` be the target of spread
 ;;   - `DetectCycles(nextFragmentDefinition, nextVisited)`
 
+(def all-named-fragments
+  (recursive-path
+    []
+    p
+    (cond-path
+      :alumbra/selection-set
+      [:alumbra/selection-set
+       ALL
+       (multi-path
+         #(contains? % :alumbra/fragment-name)
+         p)]
+      STAY)))
+
+(def all-fragment-names
+  [all-named-fragments :alumbra/fragment-name])
+
 (defn- collect-edges
   [fragments]
   (->> (for [{:keys [alumbra/fragment-name] :as fragment}
              fragments]
          (->> fragment
-              (traverse u/all-fragment-names)
+              (traverse all-fragment-names)
               (into #{})
               (vector fragment-name)))
        (into {})))

@@ -1,7 +1,7 @@
 (ns alumbra.validator.document.variables.variable-default-values
-  (:require [alumbra.validator.document.variables.state :as state]
-            [alumbra.validator.document
+  (:require [alumbra.validator.document
              [context :as context]
+             [state :as state]
              [types :as types]]
             [invariant.core :as invariant]
             [com.rpl.specter :refer :all]))
@@ -9,8 +9,8 @@
 ;; ## Helpers
 
 (defn- read-type-description
-  [{:keys [variables/types current-operation]} {:keys [alumbra/variable-name]}]
-  (get-in types [current-operation variable-name]))
+  [state {:keys [alumbra/variable-name]}]
+  (state/variable-type state variable-name))
 
 (defn- make-type-constructor
   [schema]
