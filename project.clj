@@ -11,6 +11,6 @@
                  [invariant "0.1.1"]]
   :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]
                                   [alumbra/analyzer "0.1.2"]
-                                  [alumbra/parser "0.1.2"]
+                                  [alumbra/parser "0.1.4"]
                                   [alumbra/generators "0.2.2"]]}}
   :pedantic? :abort)
