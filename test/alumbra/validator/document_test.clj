@@ -109,7 +109,68 @@
 
 ;; ### 5.2.2 Field Selection Merging
 
-;; TODO
+(deftest t-field-selection-merging
+  (testing-errors
+    #{}
+    "query { dog {... mergeIdenticalFields } }
+     fragment mergeIdenticalFields on Dog { name name }"
+    "query { dog {... mergeIdenticalAliasesAndFields } }
+     fragment mergeIdenticalAliasesAndFields on Dog { otherName: name, otherName: name }"
+    "query { dog {... mergeIdenticalFieldsWithIdenticalArgs } }
+     fragment mergeIdenticalFieldsWithIdenticalArgs on Dog {
+     doesKnowCommand(dogCommand: SIT)
+     doesKnowCommand(dogCommand: SIT)
+     }"
+    "query ($dogCommand: DogCommand!) { dog {... mergeIdenticalFieldsWithIdenticalValues } }
+     fragment mergeIdenticalFieldsWithIdenticalValues on Dog {
+     doesKnowCommand(dogCommand: $dogCommand)
+     doesKnowCommand(dogCommand: $dogCommand)
+     }"
+    "query { dog { ...safeDifferingFields } }
+     fragment safeDifferingFields on Pet {
+     ... on Dog { volume: barkVolume }
+     ... on Cat { volume: meowVolume }
+     }"
+    "query { dog { ...safeDifferingArgs } }
+     fragment safeDifferingArgs on Pet {
+     ... on Dog { doesKnowCommand(dogCommand: SIT) }
+     ... on Cat { doesKnowCommand(catCommand: JUMP) }
+     }"
+
+    #{:field/selection-mergeable}
+    "query { dog { ...conflictingBecauseAlias } }
+     fragment conflictingBecauseAlias on Dog { name: nickname, name }"
+    "query { dog { ... conflictingArgsOnValues } }
+     fragment conflictingArgsOnValues on Dog {
+     doesKnowCommand(dogCommand: SIT)
+     doesKnowCommand(dogCommand: HEEL)
+     }"
+    "query ($dogCommand: DogCommand!) { dog { ... conflictingArgsValueAndVar } }
+     fragment conflictingArgsValueAndVar on Dog {
+     doesKnowCommand(dogCommand: SIT)
+     doesKnowCommand(dogCommand: $dogCommand)
+     }"
+    "query ($varOne: DogCommand!, $varTwo: DogCommand!) { dog {... conflictingArgsWithVars } }
+     fragment conflictingArgsWithVars on Dog {
+     doesKnowCommand(dogCommand: $varOne)
+     doesKnowCommand(dogCommand: $varTwo)
+     }"
+    "query ($varOne: DogCommand!, $varTwo: DogCommand!) { dog {...proxyFragment} }
+     fragment proxyFragment on Dog { ...conflictingArgsWithVars }
+     fragment conflictingArgsWithVars on Dog {
+     doesKnowCommand(dogCommand: $varOne)
+     doesKnowCommand(dogCommand: $varTwo)
+     }"
+    "query { dog { ...differingArgs } }
+     fragment differingArgs on Dog {
+     isHousetrained(atOtherHomes: true)
+     isHousetrained
+     }"
+    "query { dog { ... conflictingDifferingResponses } }
+     fragment conflictingDifferingResponses on Pet {
+     ... on Dog { someValue: nickname }
+     ... on Cat { someValue: meowVolume }
+     }"))
 
 ;; ### 5.2.3 Leaf Field Selection
 
