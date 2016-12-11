@@ -561,9 +561,22 @@
     "query booleanArgQueryWithDefault($booleanArg: Boolean = true) {
      arguments { nonNullBooleanArgField(nonNullBooleanArg: $booleanArg) }
      }"
+    "query ($nonNullBooleanList: [Boolean]!) {
+     arguments { booleanListArgField(booleanListArg: $nonNullBooleanList) }
+     }"
+    "query ($booleanArg: Boolean = true) {
+     arguments { nonNullBooleanArgField(nonNullBooleanArg: $booleanArg) }
+     }"
+    "query ($booleanArg: Boolean = true) { arguments { ... F } }
+     fragment F on Arguments { nonNullBooleanArgField(nonNullBooleanArg: $booleanArg) }"
+    "query ($nonNullBooleanList: [Boolean]!) { arguments { ... F } }
+     fragment F on Arguments { booleanListArgField(booleanListArg: $nonNullBooleanList) }"
 
     #{:value/type-correct}
     "query intCannotGoIntoBoolean($intArg: Int) {
+     arguments { booleanArgField(booleanArg: $intArg) }
+     }"
+    "query ($intArg: Int) {
      arguments { booleanArgField(booleanArg: $intArg) }
      }"
     "query booleanListCannotGoIntoBoolean($booleanListArg: [Boolean]) {
