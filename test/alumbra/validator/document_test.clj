@@ -466,6 +466,9 @@
     "query intToFloatQuery($floatVar: Float = 1) {
      arguments { floatArgField(floatArg: $floatVar) }
      }"
+    "query intToFloatQuery($floatVar: Float = null) {
+     arguments { floatArgField(floatArg: $floatVar) }
+     }"
     "query ($bools: [Boolean!] = [true, true]) {
      booleanList(booleanListArg: $bools)
      }"

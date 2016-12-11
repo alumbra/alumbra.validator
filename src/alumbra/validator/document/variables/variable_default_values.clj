@@ -37,5 +37,7 @@
             (invariant/bind
               (fn [state {:keys [alumbra/default-value] :as variable}]
                 (when default-value
-                  (->> (read-type-description state variable)
-                       (make-invariant type-constructor))))))))))
+                  (invariant/with-static-error-context
+                    (->> (read-type-description state variable)
+                         (make-invariant type-constructor))
+                    {:alumbra/value default-value})))))))))
