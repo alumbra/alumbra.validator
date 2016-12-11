@@ -95,12 +95,12 @@
   ([k deps]
    (filter-by-tag k identity deps))
   ([k f deps]
-   (set
-     (keep
-       (fn [[k' v]]
-         (when (= k k')
-           (f v)))
-       deps))))
+   (reduce
+     (fn [result [k' v]]
+       (if (= k k')
+         (conj result (f v))
+         result))
+     #{} deps)))
 
 ;; ### Operations
 
