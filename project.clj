@@ -10,7 +10,7 @@
                  [com.stuartsierra/dependency "0.2.0"]
                  [invariant "0.1.2"]]
   :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]
-                                  [alumbra/analyzer "0.1.2"]
+                                  [alumbra/analyzer "0.1.3"]
                                   [alumbra/parser "0.1.4"]
                                   [alumbra/generators "0.2.2"]]}}
   :pedantic? :abort)
