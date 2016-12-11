@@ -22,9 +22,10 @@
   [invariant]
   (invariant/with-error-context
     invariant
-    (fn [_ op]
-      (select-keys op [:alumbra/operation-name
-                       :alumbra/operation-type]))))
+    (fn [_ {:keys [alumbra/operation-name
+                   alumbra/operation-type]}]
+      {:alumbra/operation-name operation-name
+       :alumbra/operation-type operation-type})))
 
 (defn with-fragment-context
   [invariant]
