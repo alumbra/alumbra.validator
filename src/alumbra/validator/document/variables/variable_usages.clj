@@ -17,10 +17,17 @@
 
 ;; ## Invariant
 
-(def ^:private variable-defined?
+(def ^:private variable-in-operation-scope?
   (with-variable-context
     (invariant/property
-      :variable/exists
+      :variable/name-in-operation-scope
+      (fn [state {:keys [alumbra/variable-name]}]
+        (state/variable-in-scope? state variable-name)))))
+
+(def ^:private variable-in-fragment-scope?
+  (with-variable-context
+    (invariant/property
+      :variable/name-in-fragment-scope
       (fn [state {:keys [alumbra/variable-name]}]
         (state/variable-in-scope? state variable-name)))))
 
@@ -38,4 +45,9 @@
 (defn invariant
   [_ field]
   (-> (invariant/on [nested-variable-path])
-      (invariant/each variable-defined?)))
+      (invariant/each
+        (invariant/bind
+          (fn [state _]
+            (if (state/in-operation? state)
+              variable-in-operation-scope?
+              variable-in-fragment-scope?))))))

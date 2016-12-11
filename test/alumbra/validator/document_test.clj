@@ -514,8 +514,10 @@
      query housetrainedQueryTwo($atOtherHomes: Boolean) { dog { ...isHousetrainedFragment } }
      fragment isHousetrainedFragment on Dog { isHousetrained(atOtherHomes: $atOtherHomes) }"
 
-    #{:variable/exists}
+    #{:variable/name-in-operation-scope}
     "query variableIsNotDefined { dog { isHousetrained(atOtherHomes: $atOtherHomes) } }"
+
+    #{:variable/name-in-fragment-scope}
     "query variableIsNotDefinedUsedInSingleFragment { dog { ...isHousetrainedFragment } }
      fragment isHousetrainedFragment on Dog { isHousetrained(atOtherHomes: $atOtherHomes) }"
     "query variableIsNotDefinedUsedInNestedFragment { dog { ...outerHousetrainedFragment } }
