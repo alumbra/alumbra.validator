@@ -53,11 +53,20 @@
 
 ;; ## Generative Tests
 
+(def ^:private excusable-errors
+  "The generator is not perfect. Sorry."
+  #{:field/selection-mergeable})
+
 (defspec t-valid-queries-pass-validation 1000
   (let [gen-operation (alumbra-gen/operation schema)]
     (prop/for-all
       [query (gen-operation :query)]
-      (nil? (validate!* query)))))
+      (let [result (validate!* query)]
+        (or (nil? result)
+            (every?
+              (comp excusable-errors
+                    :alumbra/validation-error-class)
+              result))))))
 
 ;; ## Tests
 
