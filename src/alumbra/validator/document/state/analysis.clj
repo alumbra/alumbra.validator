@@ -134,6 +134,15 @@
       (assoc result n (analyze-fragment graph node)))
     {} nodes))
 
+(defn- sort-fragments
+  [graph]
+  (->> (dep/topo-sort graph)
+       (keep
+         (fn [[k v]]
+           (when (= k :fragment)
+             v)))
+       (vec)))
+
 ;; ### Invariant
 
 (defn- analyze
@@ -143,8 +152,9 @@
   (let [graph (-> (build-fragment-graph doc)
                   (build-operation-graph doc))
         {:keys [fragment operation]} (group-by first (dep/nodes graph))]
-    {:fragments  (analyze-fragments graph fragment)
-     :operations (analyze-operations graph operation)}))
+    {:fragments        (analyze-fragments graph fragment)
+     :sorted-fragments (sort-fragments graph)
+     :operations       (analyze-operations graph operation)}))
 
 (defn initialize
   [invariant]
@@ -155,4 +165,7 @@
                               (get data :operations)))
       (invariant/compute-as ::by-fragment
                             (fn [{:keys [::data]} _]
-                              (get data :fragments)))))
+                              (get data :fragments)))
+      (invariant/compute-as ::sorted-fragments
+                            (fn [{:keys [::data]} _]
+                              (get data :sorted-fragments)))))

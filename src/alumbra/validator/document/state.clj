@@ -92,3 +92,7 @@
 (defn fragment-type
   [{:keys [::fragments/types]} fragment-name]
   (get types fragment-name))
+
+(defn sorted-fragments
+  [{:keys [::analysis/sorted-fragments]}]
+  sorted-fragments)
