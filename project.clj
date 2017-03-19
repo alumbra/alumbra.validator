@@ -8,9 +8,9 @@
   :dependencies [[org.clojure/clojure "1.9.0-alpha14" :scope "provided"]
                  [alumbra/spec "0.1.6" :scope "provided"]
                  [com.stuartsierra/dependency "0.2.0"]
-                 [invariant "0.1.3"]]
+                 [invariant "0.1.4"]]
   :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]
-                                  [alumbra/analyzer "0.1.7"]
-                                  [alumbra/parser "0.1.5"]
+                                  [alumbra/analyzer "0.1.9"]
+                                  [alumbra/parser "0.1.6"]
                                   [alumbra/generators "0.2.2"]]}}
   :pedantic? :abort)
