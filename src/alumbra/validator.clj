@@ -1,5 +1,6 @@
 (ns alumbra.validator
   (:require [alumbra.validator
+             [analyzed-schema :as analyzed-schema]
              [document :as document]
              [errors :as errors]]
             [invariant.core :as invariant]))
@@ -33,3 +34,16 @@
    (validate schema ast {}))
   ([schema ast variables]
    ((validator schema) ast variables)))
+
+;; ## Analyzed Schema Validation
+
+(defn analyzed-schema-validator
+  []
+  (let [invariant (analyzed-schema/invariant)]
+    (fn validate-analyzed-graphql-schema
+      [schema]
+      (invariant/check invariant schema))))
+
+(defn validate-analyzed-schema
+  [schema]
+  ((analyzed-schema-validator) schema))
