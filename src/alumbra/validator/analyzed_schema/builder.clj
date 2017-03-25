@@ -27,7 +27,7 @@
   [builders]
   (-> (invariant/on [:types MAP-VALS])
       (invariant/each
-        (-> (invariant/compute-as :state/type #(do (first %2)))
+        (-> (invariant/first-as :state/type [STAY])
             (invariant/is?
               (make-invariant :types builders))))))
 
@@ -36,7 +36,7 @@
 (defn- initialize-invariant
   []
   (-> (invariant/on-current-value)
-      (invariant/compute-as :state/schema #(do (first %2)))))
+      (invariant/first-as :state/schema [STAY])))
 
 ;; ## Builder
 
