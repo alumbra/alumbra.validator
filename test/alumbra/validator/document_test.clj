@@ -18,7 +18,8 @@
       (analyzer/analyze-schema ql/parse-schema)))
 
 (def validate!*
-  (comp (validator schema)
+  (comp :alumbra/validation-errors
+        (validator schema)
         ql/parse-document))
 
 (def validate!

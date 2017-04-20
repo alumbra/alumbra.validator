@@ -68,5 +68,6 @@
 
 (defn as-validation-errors
   [errors]
-  (when errors
-    (mapv as-validation-error errors)))
+  (when (seq errors)
+    {:alumbra/validation-errors
+     (mapv as-validation-error errors)}))
