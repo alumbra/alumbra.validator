@@ -57,10 +57,6 @@
       (invariant/first-as ::operation-name [:alumbra/operation-name])
       (set-variables-in-scope)))
 
-(defn in-operation?
-  [state]
-  (contains? state ::operation-name))
-
 ;; ## Variables
 
 (defn variable-type
@@ -96,3 +92,13 @@
 (defn sorted-fragments
   [{:keys [::analysis/sorted-fragments]}]
   sorted-fragments)
+
+;; ## Operations
+
+(defn in-operation?
+  [state]
+  (contains? state ::operation-name))
+
+(defn operation-count
+  [{:keys [::analysis/operation-count] :as state}]
+  operation-count)

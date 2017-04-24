@@ -168,4 +168,7 @@
                               (get data :fragments)))
       (invariant/compute-as ::sorted-fragments
                             (fn [{:keys [::data]} _]
-                              (get data :sorted-fragments)))))
+                              (get data :sorted-fragments)))
+      (invariant/compute-as ::operation-count
+                            (fn [_ [{:keys [alumbra/operations]}]]
+                              (count operations)))))
