@@ -1,5 +1,6 @@
 (ns alumbra.validator.document.operations.lone-anonymous-operation
-  (:require [invariant.core :as invariant]
+  (:require [alumbra.validator.document.state :as state]
+            [invariant.core :as invariant]
             [com.rpl.specter :refer [ALL]]))
 
 ;; Formal Specification (5.1.2.1)
@@ -11,14 +12,11 @@
 
 (def invariant
   (constantly
-    (-> (invariant/on [:alumbra/operations])
-        (invariant/count-as :operations [ALL])
-        (invariant/count-as
-          :anonymous-operations
-          [ALL #(not (contains? % :alumbra/operation-name))])
-        (invariant/is?
+    (-> (invariant/on
+          [:alumbra/operations
+           ALL
+           #(not (contains? % :alumbra/operation-name))])
+        (invariant/each
           (invariant/state
             :operation/lone-anonymous
-            (fn [{:keys [operations anonymous-operations]}]
-              (or (<= operations 1)
-                  (zero? anonymous-operations))))))))
+            #(= (state/operation-count %) 1))))))
