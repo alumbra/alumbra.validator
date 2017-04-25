@@ -1,4 +1,4 @@
-(defproject alumbra/validator "0.2.1-SNAPSHOT"
+(defproject alumbra/validator "0.2.1"
   :description "Validator for GraphQL ASTs."
   :url "https://github.com/alumbra/alumbra.validator"
   :license {:name "MIT License"
